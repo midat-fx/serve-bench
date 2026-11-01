@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Start one server, run the experiment suite against it, stop it.
 #   scripts/bench.sh <llamacpp|mlx|lmstudio-gguf|lmstudio-mlx> [experiment ...]
+#   scripts/bench.sh fake ceiling
 # Experiments: concurrency rate arrivals prompt prefix (default: all).
 # Every run waits until the 1-minute load average is below MAX_LOAD.
 set -euo pipefail
@@ -41,6 +42,12 @@ lmstudio-gguf|lmstudio-mlx)
   stop() { $LMS unload bench >/dev/null 2>&1 || true; $LMS server stop >/dev/null 2>&1 || true; }
   version() { echo "LM Studio $($LMS version 2>/dev/null | grep -o 'CLI commit.*' || true);" \
                    "$($LMS runtime ls 2>/dev/null | grep '✓' | awk '{print $1}' | tr '\n' ' ')"; } ;;
+fake)  # measures the client's own ceiling: 1 ms/token streams, more slots than users
+  URL=http://127.0.0.1:8090 MODEL=fake EOS=
+  start() { uv run python -m servebench.fakeserver --port 8090 --slots 64 --decode-s 0.001 \
+              --prefill-s-per-token 0 >$LOGS/$server.log 2>&1 & }
+  stop() { pkill -f "servebench.fakeserver --port 8090" || true; }
+  version() { echo "fake 1ms/token"; } ;;
 *) echo "unknown server $server" >&2; exit 2 ;;
 esac
 
@@ -87,6 +94,10 @@ prefix)  # 2048-token prompts, 4 users, growing shared prefix
   for s in 0 1024 1920; do
     bench prefix s$s --concurrency 4 --n 32 --prompt-tokens 2048 --shared-prefix $s \
       --max-tokens 64 --tag x=$s
+  done ;;
+ceiling)  # run with the fake server: how fast can the client ingest tokens?
+  for c in 1 8 32 64; do
+    bench ceiling c$c --concurrency $c --n $((2 * c)) --max-tokens 512 --tag x=$c
   done ;;
 *) echo "unknown experiment $exp" >&2; exit 2 ;;
 esac; done

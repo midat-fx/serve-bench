@@ -9,8 +9,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-SERVERS = ["llamacpp", "lmstudio-gguf", "mlx", "lmstudio-mlx"]
-COLORS = dict(zip(SERVERS, ["#1f77b4", "#7fb3e0", "#d62728", "#f0928f"]))
+SERVERS = ["llamacpp", "lmstudio-gguf", "mlx", "lmstudio-mlx", "fake"]
+COLORS = dict(zip(SERVERS, ["#1f77b4", "#7fb3e0", "#d62728", "#f0928f", "#888888"]))
 
 
 def load(results: pathlib.Path) -> dict:
