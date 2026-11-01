@@ -96,3 +96,24 @@ def test_queueing_shows_up_in_ttft_not_tpot():
     assert s["tpot_s"]["p50"] == pytest.approx(0.010, abs=0.003)
     # Only the first two requests start before the queue fills (TTFT ~0.05s, ~0.3s).
     assert s["slo_attainment"] == pytest.approx(2 / 12)
+
+
+def test_report_builds_table_and_plots(tmp_path):
+    import json
+
+    from servebench.report import report
+
+    for exp, xs in {"concurrency": [1, 2], "rate": [1, 2], "arrivals": ["constant", "burst"],
+                    "prompt": [50, 100], "prefix": [0, 50]}.items():
+        for server in ("llamacpp", "mlx"):
+            for x in xs:
+                kw = {"tags": {"experiment": exp, "x": str(x)}, "label": server, "n": 3}
+                kw |= {"concurrency": x} if exp == "concurrency" else {}
+                res = asyncio.run(_with_fake(kw, slots=2, decode=0.001))
+                d = tmp_path / "results" / exp
+                d.mkdir(parents=True, exist_ok=True)
+                (d / f"{server}_{x}.json").write_text(json.dumps(res))
+    pngs = report(tmp_path / "results", tmp_path / "img")
+    assert sorted(pngs) == ["arrivals.png", "concurrency.png", "prefix.png", "prompt.png", "rate.png"]
+    summary = (tmp_path / "results" / "SUMMARY.md").read_text()
+    assert summary.count("| llamacpp |") == 10 and "`arrivals/mlx_burst`" in summary

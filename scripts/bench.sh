@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Start one server, run the experiment suite against it, stop it.
+#   scripts/bench.sh <llamacpp|mlx|lmstudio-gguf|lmstudio-mlx> [experiment ...]
+# Experiments: concurrency rate arrivals prompt prefix (default: all).
+# Every run waits until the 1-minute load average is below MAX_LOAD.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+MODELS=${MODELS:-$HOME/.lmstudio/models/lmstudio-community}
+GGUF=$MODELS/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q4_K_M.gguf
+MLXDIR=$MODELS/Qwen3-1.7B-MLX-4bit
+LMS=${LMS:-$HOME/.lmstudio/bin/lms}
+SLOTS=8       # concurrent sequences every server is allowed to batch
+CTX=32768     # total KV budget (llama.cpp splits it across slots: 4096 each)
+MAX_LOAD=${MAX_LOAD:-6}
+LOGS=.logs; mkdir -p $LOGS
+RESULTS=${RESULTS:-results}  # point dry runs on a busy machine elsewhere
+
+server=$1; shift
+exps=${*:-concurrency rate arrivals prompt prefix}
+
+case $server in
+llamacpp)
+  URL=http://127.0.0.1:8081 MODEL=qwen3-1.7b EOS=--ignore-eos
+  start() { llama-server -m "$GGUF" --port 8081 -np $SLOTS -c $CTX --log-disable >$LOGS/$server.log 2>&1 & }
+  stop() { pkill -f "llama-server -m $GGUF --port 8081" || true; }
+  version() { llama-server --version 2>&1 | grep version; } ;;
+mlx)
+  # mlx_lm.server has no ignore_eos; random-word prompts make early EOS rare and
+  # mean_output_tokens in each result shows whether it happened.
+  URL=http://127.0.0.1:8082 MODEL=default_model EOS=
+  start() { uv run --group mlx mlx_lm.server --model "$MLXDIR" --port 8082 --decode-concurrency $SLOTS \
+              --prompt-concurrency $SLOTS --log-level WARNING >$LOGS/$server.log 2>&1 & }
+  stop() { pkill -f "mlx_lm.server --model $MLXDIR --port 8082" || true; }
+  version() { echo "mlx-lm $(uv run --group mlx python -c 'import mlx_lm, mlx.core as m; print(mlx_lm.__version__, "mlx", m.__version__)')"; } ;;
+lmstudio-gguf|lmstudio-mlx)
+  URL=http://127.0.0.1:1234 MODEL=bench EOS=--ignore-eos
+  key=qwen3-1.7b; [ $server = lmstudio-mlx ] && key=qwen3-1.7b-mlx
+  start() { $LMS server start --port 1234 >/dev/null
+            $LMS load $key --parallel $SLOTS -c $CTX --identifier bench -y >$LOGS/$server.log 2>&1; }
+  stop() { $LMS unload bench >/dev/null 2>&1 || true; $LMS server stop >/dev/null 2>&1 || true; }
+  version() { echo "LM Studio $($LMS version 2>/dev/null | grep -o 'CLI commit.*' || true);" \
+                   "$($LMS runtime ls 2>/dev/null | grep '✓' | awk '{print $1}' | tr '\n' ' ')"; } ;;
+*) echo "unknown server $server" >&2; exit 2 ;;
+esac
+
+wait_calm() {
+  while true; do
+    load=$(sysctl -n vm.loadavg | awk '{print $2}')
+    awk "BEGIN{exit !($load < $MAX_LOAD)}" && return
+    echo "load $load >= $MAX_LOAD, waiting..." >&2; sleep 30
+  done
+}
+
+bench() {  # bench <experiment> <name> [servebench run args...]
+  local exp=$1 name=$2; shift 2
+  wait_calm
+  uv run servebench run --url $URL --model $MODEL --label $server $EOS \
+    --out $RESULTS/$exp/${server}_$name.json --tag experiment=$exp --tag "engine=$VERSION" "$@"
+  sleep 5
+}
+
+trap stop EXIT
+stop; start
+for _ in $(seq 120); do curl -sf $URL/v1/models >/dev/null && break; sleep 1; done
+VERSION=$(version)
+echo "$server: $VERSION"
+
+for exp in $exps; do case $exp in
+concurrency)  # closed loop, 512-token prompts, 128 output tokens
+  for c in 1 2 4 8 16 32; do
+    bench concurrency c$c --concurrency $c --n $((c < 4 ? 16 : 4 * c)) --tag x=$c
+  done ;;
+rate)  # open loop Poisson arrivals, ~40 s per offered rate
+  for r in 0.5 1 2 3 4 6; do
+    bench rate r$r --pattern poisson --rate $r --n $(awk "BEGIN{print int($r*40)}") --tag x=$r
+  done ;;
+arrivals)  # same mean rate, different burstiness
+  for p in constant poisson burst; do
+    bench arrivals $p --pattern $p --rate 2 --burst 8 --n 64 --tag x=$p
+  done ;;
+prompt)  # single user: prefill cost vs prompt length
+  for t in 128 512 1024 2048 3584; do
+    bench prompt t$t --concurrency 1 --n 8 --prompt-tokens $t --max-tokens 64 --tag x=$t
+  done ;;
+prefix)  # 2048-token prompts, 4 users, growing shared prefix
+  for s in 0 1024 1920; do
+    bench prefix s$s --concurrency 4 --n 32 --prompt-tokens 2048 --shared-prefix $s \
+      --max-tokens 64 --tag x=$s
+  done ;;
+*) echo "unknown experiment $exp" >&2; exit 2 ;;
+esac; done

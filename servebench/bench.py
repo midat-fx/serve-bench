@@ -78,6 +78,7 @@ async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0
                 obj = json.loads(data)
                 if usage := obj.get("usage"):
                     req.prompt_tokens = usage.get("prompt_tokens")
+                    req.cached_tokens = (usage.get("prompt_tokens_details") or {}).get("cached_tokens")
                     usage_out = usage.get("completion_tokens")
                 for ch in obj.get("choices") or []:
                     if ch.get("text"):

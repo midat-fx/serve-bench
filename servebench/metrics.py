@@ -15,6 +15,7 @@ class Request:
     idx: int
     t_send: float  # seconds since run start
     prompt_tokens: int | None = None  # from server usage, if reported
+    cached_tokens: int | None = None  # prompt tokens served from the server's prefix cache
     output_tokens: int = 0
     chunk_times: list[float] = field(default_factory=list)  # since run start
     t_end: float | None = None
@@ -75,6 +76,7 @@ def summarize(reqs: list[Request], slo_ttft: float, slo_tpot: float) -> dict:
     good = [r for r in ok if r.ttft <= slo_ttft and (r.tpot is None or r.tpot <= slo_tpot)]
     out_tokens = sum(r.output_tokens for r in ok)
     prompt = [r.prompt_tokens for r in ok if r.prompt_tokens is not None]
+    cached = [r.cached_tokens for r in ok if r.cached_tokens is not None]
     return {
         "n": len(reqs),
         "n_ok": len(ok),
@@ -83,6 +85,7 @@ def summarize(reqs: list[Request], slo_ttft: float, slo_tpot: float) -> dict:
         "req_per_s": len(ok) / duration,
         "output_tok_per_s": out_tokens / duration,
         "mean_prompt_tokens": sum(prompt) / len(prompt) if prompt else None,
+        "mean_cached_tokens": sum(cached) / len(cached) if cached else None,
         "mean_output_tokens": out_tokens / len(ok),
         "ttft_s": _dist([r.ttft for r in ok]),
         "tpot_s": _dist(tpots),

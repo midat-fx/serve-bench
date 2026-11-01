@@ -4,6 +4,7 @@ import json
 import pathlib
 
 from .bench import run
+from .report import report
 
 
 def cmd_run(a):
@@ -50,6 +51,11 @@ def main():
     r.add_argument("--extra-body", default="{}", help="JSON merged into each request body")
     r.add_argument("--tag", action="append", default=[], help="k=v stored with the run")
     r.set_defaults(fn=cmd_run)
+
+    p = sub.add_parser("report", help="results/SUMMARY.md and plots from all result files")
+    p.add_argument("--results", default="results")
+    p.add_argument("--img", default="docs/img")
+    p.set_defaults(fn=lambda a: print(*report(pathlib.Path(a.results), pathlib.Path(a.img))))
 
     a = ap.parse_args()
     a.fn(a)
