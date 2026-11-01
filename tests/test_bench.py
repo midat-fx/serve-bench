@@ -119,4 +119,4 @@ def test_report_builds_table_and_plots(tmp_path):
     pngs = report(tmp_path / "results", tmp_path / "img")
     assert sorted(pngs) == ["arrivals.png", "concurrency.png", "prefix.png", "prompt.png", "rate.png"]
     summary = (tmp_path / "results" / "SUMMARY.md").read_text()
-    assert summary.count("| llamacpp |") == 10 and "`arrivals/mlx_burst`" in summary
+    assert summary.count("| llamacpp |") == 10 and "`arrivals/mlx_burst.json`" in summary

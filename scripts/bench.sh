@@ -39,9 +39,13 @@ mlx)
 lmstudio-gguf|lmstudio-mlx)
   URL=http://127.0.0.1:1234 MODEL=bench EOS=--ignore-eos
   key=qwen3-1.7b; [ $server = lmstudio-mlx ] && key=qwen3-1.7b-mlx
+  # Other jobs may use LM Studio too: only unload our own model instance, and only stop
+  # the HTTP server if this script started it.
+  OWN_SERVER=0; $LMS server status 2>&1 | grep -q ON || OWN_SERVER=1
   start() { $LMS server start --port 1234 >/dev/null
             $LMS load $key --parallel $SLOTS -c $CTX --identifier bench -y >$LOGS/$server.log 2>&1; }
-  stop() { $LMS unload bench >/dev/null 2>&1 || true; $LMS server stop >/dev/null 2>&1 || true; }
+  stop() { $LMS unload bench >/dev/null 2>&1 || true
+           [ $OWN_SERVER = 1 ] && { $LMS server stop >/dev/null 2>&1 || true; }; }
   version() { echo "LM Studio $($LMS version 2>/dev/null | grep -o 'CLI commit.*' || true);" \
                    "$($LMS runtime ls 2>/dev/null | grep '✓' | awk '{print $1}' | tr '\n' ' ')"; } ;;
 fake)  # measures the client's own ceiling: 1 ms/token streams, more slots than users
@@ -81,7 +85,7 @@ VERSION=$(version)
 echo "$server: $VERSION"
 
 for exp in $exps; do case $exp in
-concurrency)  # closed loop, 512-token prompts, 128 output tokens
+concurrency)  # closed loop, default 256-word (~268-token) prompts, 128 output tokens
   for c in 1 2 4 8 16 32; do
     bench concurrency c$c --concurrency $c --n $((c < 4 ? 16 : 4 * c)) --tag x=$c
   done ;;
