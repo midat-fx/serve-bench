@@ -3,9 +3,12 @@ import statistics
 
 import pytest
 
+import servebench.bench
 from servebench.bench import arrivals, make_prompts, run
 from servebench.fakeserver import serve
 from servebench.metrics import Request, percentile, summarize
+
+servebench.bench.GPU_SAMPLES = 1  # each sample costs 0.2 s
 
 
 def test_percentile_matches_numpy_linear():

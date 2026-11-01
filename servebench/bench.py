@@ -101,11 +101,14 @@ def _sh(cmd: str) -> str:
         return ""
 
 
-def gpu_util(samples: int = 5) -> float | None:
+GPU_SAMPLES = 5
+
+
+def gpu_util() -> float | None:
     """Mean GPU 'Device Utilization %' from IOAccelerator over ~1 s (no sudo needed).
     Load average misses GPU contention, e.g. another app rendering on the GPU."""
     vals = []
-    for _ in range(samples):
+    for _ in range(GPU_SAMPLES):
         out = _sh("ioreg -r -d 1 -c IOAccelerator | grep -o '\"Device Utilization %\"=[0-9]*'")
         vals += [int(v.split("=")[1]) for v in out.splitlines()]
         time.sleep(0.2)
