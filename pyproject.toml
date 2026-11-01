@@ -1,0 +1,21 @@
+[project]
+name = "servebench"
+version = "0.1.0"
+description = "Load generator and metrics for OpenAI-compatible LLM inference servers"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.28", "matplotlib>=3.9"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+# Only needed to launch the MLX server for benchmarks; tests never import it.
+mlx = ["mlx-lm==0.32.2"]
+
+[project.scripts]
+servebench = "servebench.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+default-groups = ["dev"]
