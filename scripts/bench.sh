@@ -3,7 +3,8 @@
 #   scripts/bench.sh <llamacpp|mlx|lmstudio-gguf|lmstudio-mlx> [experiment ...]
 #   scripts/bench.sh fake ceiling
 # Experiments: concurrency rate arrivals prompt prefix (default: all).
-# Every run waits until the 1-minute load average is below MAX_LOAD.
+# Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
+# GPU use is below MAX_GPU.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,6 +15,7 @@ LMS=${LMS:-$HOME/.lmstudio/bin/lms}
 SLOTS=8       # concurrent sequences every server is allowed to batch
 CTX=32768     # total KV budget (llama.cpp splits it across slots: 4096 each)
 MAX_LOAD=${MAX_LOAD:-6}
+MAX_GPU=${MAX_GPU:-20}  # % busy from other apps (load average does not see GPU work)
 LOGS=.logs; mkdir -p $LOGS
 RESULTS=${RESULTS:-results}  # point dry runs on a busy machine elsewhere
 
@@ -51,11 +53,16 @@ fake)  # measures the client's own ceiling: 1 ms/token streams, more slots than 
 *) echo "unknown server $server" >&2; exit 2 ;;
 esac
 
-wait_calm() {
+gpu() {  # GPU utilization %, from the same IOAccelerator counter results record
+  ioreg -r -d 1 -c IOAccelerator | grep -o '"Device Utilization %"=[0-9]*' | head -1 | cut -d= -f2
+}
+
+wait_calm() {  # our server is idle here, so GPU use is someone else's
   while true; do
-    load=$(sysctl -n vm.loadavg | awk '{print $2}')
-    awk "BEGIN{exit !($load < $MAX_LOAD)}" && return
-    echo "load $load >= $MAX_LOAD, waiting..." >&2; sleep 30
+    load=$(sysctl -n vm.loadavg | awk '{print $2}') g=$(gpu)
+    awk "BEGIN{exit !($load < $MAX_LOAD && ${g:-0} < $MAX_GPU)}" && return
+    echo "$(date +%H:%M) load $load (max $MAX_LOAD), gpu ${g}% (max $MAX_GPU), waiting..." >&2
+    sleep 30
   done
 }
 

@@ -101,12 +101,24 @@ def _sh(cmd: str) -> str:
         return ""
 
 
+def gpu_util(samples: int = 5) -> float | None:
+    """Mean GPU 'Device Utilization %' from IOAccelerator over ~1 s (no sudo needed).
+    Load average misses GPU contention, e.g. another app rendering on the GPU."""
+    vals = []
+    for _ in range(samples):
+        out = _sh("ioreg -r -d 1 -c IOAccelerator | grep -o '\"Device Utilization %\"=[0-9]*'")
+        vals += [int(v.split("=")[1]) for v in out.splitlines()]
+        time.sleep(0.2)
+    return sum(vals) / len(vals) if vals else None
+
+
 def machine_state() -> dict:
-    """What else the machine was doing: load, free memory, power source, top CPU users."""
+    """What else the machine was doing: load, GPU use, free memory, power, top CPU users."""
     free = _sh("memory_pressure -Q | awk -F': ' '/percentage/{print $2}'")
     return {
         "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "loadavg": [round(x, 2) for x in os.getloadavg()],
+        "gpu_util_pct": gpu_util(),
         "mem_free_pct": free,
         "power": _sh("pmset -g batt | head -1 | sed \"s/Now drawing from //;s/'//g\""),
         # Command basenames only (-c): no paths or arguments leak into results.
@@ -142,9 +154,9 @@ async def run(cfg: dict) -> dict:
 
     limits = httpx.Limits(max_connections=1000, max_keepalive_connections=1000)
     async with httpx.AsyncClient(timeout=httpx.Timeout(600.0), limits=limits) as client:
+        before = machine_state()  # before warmup, so our own GPU work is not in it
         for p in warm:  # model load, Metal shader compile, connection setup
             await send(client, cfg["url"], body(p), Request(-1, 0.0), time.perf_counter())
-        before = machine_state()
         reqs = [Request(i, 0.0) for i in range(cfg["n"])]
         t0 = time.perf_counter()
         if cfg["pattern"] == "closed":
