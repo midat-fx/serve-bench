@@ -86,7 +86,7 @@ concurrency)  # closed loop, 512-token prompts, 128 output tokens
     bench concurrency c$c --concurrency $c --n $((c < 4 ? 16 : 4 * c)) --tag x=$c
   done ;;
 rate)  # open loop Poisson arrivals, ~40 s per offered rate
-  for r in 0.5 1 2 3 4 6; do
+  for r in 1 2 3 4 6 8; do
     bench rate r$r --pattern poisson --rate $r --n $(awk "BEGIN{print int($r*40)}") --tag x=$r
   done ;;
 arrivals)  # same mean rate, different burstiness
