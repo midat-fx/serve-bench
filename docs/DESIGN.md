@@ -7,16 +7,16 @@ Why serve-bench is built the way it is. Each section is a decision and the reaso
 All three servers expose the OpenAI completions endpoint. Using it instead of
 `/v1/chat/completions` means:
 
-- no chat template, so the prompt that reaches the model is exactly the text we built,
-  and prompt length is under our control;
+- no chat template, so the prompt that reaches the model is exactly the text I built,
+  and I control the prompt length;
 - no "thinking" phase from Qwen3: the chat template would turn it on, the output would
   then split into `reasoning_content` and `content`, and the servers stream those two differently.
 
-The cost: we do not measure template rendering. On a 1.7B model that is noise next to prefill.
+The cost: template rendering is not measured. On a 1.7B model that is noise next to prefill.
 
 ## Synthetic prompts from common words
 
-Prompts are random sequences of ~200 common English words. Each one is a single Qwen3 token
+Prompts are random sequences drawn from 142 common English words. Nearly every one is a single Qwen3 token
 with its leading space, so N words come to about N tokens. The real count comes from the server's
 `usage.prompt_tokens` and goes into every result: 512 words measured as 523 tokens on llama.cpp.
 Prefill and decode cost do not depend on what the text means (no speculative decoding is enabled
@@ -108,8 +108,8 @@ This reduces noise without removing it. If a number looks off, check the load co
 ## Client
 
 Python asyncio + httpx. Timestamps come from `time.perf_counter()` taken when a parsed SSE line
-holds non-empty text. A Python client has a ceiling, so the client was measured against the fake
-server (see README) to show it is far above what these servers produce.
+holds non-empty text. A Python client has a ceiling. `scripts/bench.sh fake ceiling` measures it against the fake
+server at 1 ms/token, to check that it sits well above what these servers produce.
 
 ## Tests without a model
 
