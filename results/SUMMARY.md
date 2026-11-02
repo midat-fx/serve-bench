@@ -21,6 +21,15 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | constant | 64/64 | 267 | – | 127 | 150 | 161 | 4.6 | 4.8 | 253 | 1.99 | 100 | 3.0→3.1 | 5 | `arrivals/lmstudio-mlx_constant.json` |
 | lmstudio-mlx | poisson | 64/64 | 267 | – | 127 | 132 | 230 | 4.1 | 6.4 | 218 | 1.72 | 100 | 3.1→2.5 | 5 | `arrivals/lmstudio-mlx_poisson.json` |
 
+## ceiling
+
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| fake | 1 | 2/2 | 257 | – | 512 | 1.1 | 1.2 | 1.2 | 1.2 | 864 | 1.69 | 100 | 3.0→2.8 | 6 | `ceiling/fake_c1.json` |
+| fake | 8 | 16/16 | 257 | – | 512 | 3.1 | 3.7 | 1.2 | 1.2 | 6907 | 13.49 | 100 | 2.7→2.9 | 6 | `ceiling/fake_c8.json` |
+| fake | 32 | 64/64 | 257 | – | 512 | 10.6 | 13.4 | 1.1 | 1.1 | 27499 | 53.71 | 100 | 3.3→3.3 | 6 | `ceiling/fake_c32.json` |
+| fake | 64 | 128/128 | 257 | – | 512 | 20.0 | 25.8 | 1.1 | 1.1 | 56634 | 110.61 | 100 | 5.1→5.1 | 8 | `ceiling/fake_c64.json` |
+
 ## concurrency
 
 | server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | file |
@@ -43,12 +52,12 @@ run shared the GPU with something else (usually a Blender render).
 | mlx | 8 | 32/32 | 267 | 8 | 128 | 553 | 686 | 10.0 | 12.5 | 538 | 4.21 | 100 | 2.5→2.7 | 5 | `concurrency/mlx_c8.json` |
 | mlx | 16 | 64/64 | 267 | 9 | 128 | 2192 | 3135 | 16.8 | 19.4 | 464 | 0.45 | 12 | 2.3→2.6 | 5 | `concurrency/mlx_c16.json` |
 | mlx | 32 | 128/128 | 268 | 9 | 128 | 5779 | 6619 | 15.1 | 17.2 | 520 | 0.25 | 6 | 3.1→2.6 | 4 | `concurrency/mlx_c32.json` |
-| lmstudio-mlx | 1 | 16/16 | 268 | – | 127 | 166 | 466 | 4.1 | 7.0 | 182 | 1.43 | 100 | 3.3→3.1 | 5 | `concurrency/lmstudio-mlx_c1.json` |
-| lmstudio-mlx | 2 | 16/16 | 266 | – | 127 | 315 | 1349 | 7.8 | 16.9 | 188 | 1.39 | 94 | 3.0→3.4 | 4 | `concurrency/lmstudio-mlx_c2.json` |
-| lmstudio-mlx | 4 | 16/16 | 268 | – | 127 | 1368 | 1581 | 14.1 | 25.8 | 161 | 0.40 | 31 | 3.2→3.3 | 5 | `concurrency/lmstudio-mlx_c4.json` |
-| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 2353 | 4100 | 27.2 | 37.9 | 170 | 0.04 | 3 | 3.4→3.1 | 4 | `concurrency/lmstudio-mlx_c8.json` |
-| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2458 | 2796 | 9.7 | 13.1 | 540 | 0.53 | 12 | 2.6→3.3 | 36 | `concurrency/lmstudio-mlx_c16.json` |
-| lmstudio-mlx | 32 | 128/128 | 267 | – | 127 | 6453 | 7434 | 9.6 | 13.8 | 511 | 0.25 | 6 | 3.1→3.9 | 5 | `concurrency/lmstudio-mlx_c32.json` |
+| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 114 | 123 | 3.1 | 3.2 | 250 | 1.97 | 100 | 4.7→5.3 | 8 | `concurrency/lmstudio-mlx_c1.json` |
+| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 161 | 259 | 4.5 | 4.8 | 351 | 2.77 | 100 | 5.5→5.9 | 16 | `concurrency/lmstudio-mlx_c2.json` |
+| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 416 | 437 | 4.8 | 5.6 | 496 | 3.90 | 100 | 5.4→5.3 | 6 | `concurrency/lmstudio-mlx_c4.json` |
+| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 679 | 867 | 9.5 | 13.0 | 535 | 4.21 | 100 | 5.2→5.9 | 6 | `concurrency/lmstudio-mlx_c8.json` |
+| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2519 | 2756 | 9.9 | 12.5 | 528 | 0.52 | 12 | 5.9→5.8 | 15 | `concurrency/lmstudio-mlx_c16.json` |
+| lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | `concurrency/lmstudio-mlx_c32.json` |
 
 ## prefix
 
@@ -63,6 +72,9 @@ run shared the GPU with something else (usually a Blender render).
 | mlx | 0 | 32/32 | 2060 | 10 | 64 | 2239 | 2279 | 8.0 | 9.6 | 93 | 0.00 | 0 | 4.1→4.9 | 36 | `prefix/mlx_s0.json` |
 | mlx | 1024 | 32/32 | 2060 | 1034 | 64 | 1104 | 1145 | 8.2 | 8.5 | 158 | 0.00 | 0 | 4.3→3.7 | 5 | `prefix/mlx_s1024.json` |
 | mlx | 1920 | 32/32 | 2060 | 1930 | 64 | 200 | 253 | 8.0 | 8.6 | 357 | 5.58 | 100 | 3.5→3.2 | 4 | `prefix/mlx_s1920.json` |
+| lmstudio-mlx | 0 | 32/32 | 2058 | – | 63 | 2173 | 2698 | 7.0 | 27.5 | 86 | 0.00 | 0 | 3.4→3.3 | 6 | `prefix/lmstudio-mlx_s0.json` |
+| lmstudio-mlx | 1024 | 32/32 | 2060 | – | 63 | 1371 | 1436 | 6.9 | 17.1 | 140 | 0.21 | 9 | 3.5→3.4 | 8 | `prefix/lmstudio-mlx_s1024.json` |
+| lmstudio-mlx | 1920 | 32/32 | 2059 | – | 63 | 546 | 570 | 6.8 | 8.1 | 260 | 4.13 | 100 | 3.2→3.1 | 6 | `prefix/lmstudio-mlx_s1920.json` |
 
 ## prompt
 
@@ -83,6 +95,11 @@ run shared the GPU with something else (usually a Blender render).
 | mlx | 1024 | 8/8 | 1034 | 8 | 64 | 269 | 271 | 4.3 | 4.3 | 119 | 1.85 | 100 | 3.4→3.4 | 5 | `prompt/mlx_t1024.json` |
 | mlx | 2048 | 8/8 | 2057 | 7 | 64 | 554 | 579 | 4.6 | 4.8 | 75 | 1.18 | 100 | 3.4→3.1 | 4 | `prompt/mlx_t2048.json` |
 | mlx | 3584 | 8/8 | 3592 | 6 | 64 | 1027 | 1123 | 5.0 | 5.1 | 47 | 0.09 | 12 | 3.0→4.2 | 4 | `prompt/mlx_t3584.json` |
+| lmstudio-mlx | 128 | 8/8 | 139 | – | 63 | 86.3 | 102 | 3.1 | 3.7 | 221 | 3.50 | 100 | 5.8→6.0 | 8 | `prompt/lmstudio-mlx_t128.json` |
+| lmstudio-mlx | 512 | 8/8 | 522 | – | 63 | 183 | 187 | 3.1 | 3.2 | 167 | 2.65 | 100 | 5.9→5.8 | 8 | `prompt/lmstudio-mlx_t512.json` |
+| lmstudio-mlx | 1024 | 8/8 | 1034 | – | 63 | 329 | 340 | 3.3 | 3.9 | 116 | 1.85 | 100 | 5.8→7.8 | 6 | `prompt/lmstudio-mlx_t1024.json` |
+| lmstudio-mlx | 2048 | 8/8 | 2059 | – | 63 | 548 | 554 | 3.5 | 3.6 | 82 | 1.31 | 100 | 4.2→3.9 | 8 | `prompt/lmstudio-mlx_t2048.json` |
+| lmstudio-mlx | 3584 | 8/8 | 3595 | – | 63 | 1049 | 1096 | 3.7 | 3.8 | 49 | 0.00 | 0 | 3.3→3.4 | 6 | `prompt/lmstudio-mlx_t3584.json` |
 
 ## rate
 
