@@ -92,13 +92,22 @@ def test_end_to_end_measures_known_latencies():
 
 
 def test_queueing_shows_up_in_ttft_not_tpot():
-    # 4 users, 1 server slot: each request waits for ~3 others (~0.25s each) before prefill.
-    res = asyncio.run(_with_fake({"concurrency": 4, "n": 12, "slo_ttft": 0.5}))
-    s = res["summary"]
-    assert s["ttft_s"]["p50"] == pytest.approx(0.8, abs=0.1)
-    assert s["tpot_s"]["p50"] == pytest.approx(0.010, abs=0.003)
-    # Only the first two requests start before the queue fills (TTFT ~0.05s, ~0.3s).
-    assert s["slo_attainment"] == pytest.approx(2 / 12)
+    # 4 users, 1 server slot. Expectations come from a 1-user baseline on the same server,
+    # not from the nominal sleeps: on a slow CI runner asyncio.sleep overshoots a lot.
+    async def go():
+        server = await serve("127.0.0.1", 0, 1, 0.0005, 0.01)
+        port = server.sockets[0].getsockname()[1]
+        async with server:
+            return (await run(_cfg(port, n=6)))["summary"], \
+                   (await run(_cfg(port, concurrency=4, n=12)))["summary"]
+
+    one, four = asyncio.run(go())
+    prefill = one["ttft_s"]["p50"]
+    decode = one["e2e_s"]["p50"] - prefill
+    # Steady state: wait for 3 full requests ahead in the queue, then prefill.
+    assert four["ttft_s"]["p50"] == pytest.approx(3 * (prefill + decode) + prefill, rel=0.2)
+    assert four["ttft_s"]["p50"] > 5 * prefill
+    assert four["tpot_s"]["p50"] == pytest.approx(one["tpot_s"]["p50"], rel=0.3)
 
 
 def test_report_builds_table_and_plots(tmp_path):
