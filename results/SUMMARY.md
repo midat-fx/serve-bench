@@ -129,3 +129,31 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 5619 | 11940 | 19.1 | 22.8 | 355 | 0.24 | 9 | 5.3→5.4 | 6 | `rate/lmstudio-mlx_r4.json` |
 | lmstudio-mlx | 6 | 240/240 | 269 | – | 127 | 17666 | 39218 | 17.8 | 20.8 | 369 | 0.11 | 4 | 5.6→8.3 | 0 | `rate/lmstudio-mlx_r6.json` |
 | lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | `rate/lmstudio-mlx_r8.json` |
+
+## stalls
+
+Token gaps above 30 ms in the open-loop runs and in the closed-loop control (c8).
+Mean token gap = the two columns after it. Times in ms.
+
+| run | TPOT p50 | mean token gap | from gaps ≤ 30 ms | from gaps > 30 ms | stall share % | stalls | stall ms per request | first tokens ≤ 100 ms after a stall % | same, stalls at random times % | file |
+|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp r1 | 5.2 | 5.4 | 5.0 | 0.4 | 7 | 15 | 42 | 38 | 3 | `rate/llamacpp_r1.json` |
+| llamacpp r2 | 10.5 | 10.4 | 8.6 | 1.8 | 17 | 56 | 74 | 71 | 14 | `rate/llamacpp_r2.json` |
+| llamacpp r3 | 19.9 | 20.5 | 8.9 | 11.6 | 56 | 71 | 259 | 92 | 16 | `rate/llamacpp_r3.json` |
+| llamacpp r4 | 18.8 | 18.3 | 8.4 | 9.9 | 54 | 100 | 195 | 86 | 20 | `rate/llamacpp_r4.json` |
+| llamacpp c8 | 8.5 | 8.4 | 8.2 | 0.2 | 2 | 3 | 3 | 9 | 7 | `concurrency/llamacpp_c8.json` |
+| lmstudio-gguf r1 | 6.9 | 7.6 | 6.8 | 0.8 | 11 | 18 | 62 | 42 | 4 | `rate/lmstudio-gguf_r1.json` |
+| lmstudio-gguf r2 | 14.9 | 14.8 | 9.4 | 5.5 | 37 | 46 | 181 | 71 | 12 | `rate/lmstudio-gguf_r2.json` |
+| lmstudio-gguf r3 | 21.7 | 22.2 | 11.3 | 10.9 | 49 | 92 | 229 | 93 | 20 | `rate/lmstudio-gguf_r3.json` |
+| lmstudio-gguf r4 | 21.8 | 20.6 | 10.3 | 10.3 | 50 | 123 | 204 | 98 | 22 | `rate/lmstudio-gguf_r4.json` |
+| lmstudio-gguf c8 | 10.8 | 10.8 | 10.6 | 0.3 | 2 | 4 | 5 | 12 | 4 | `concurrency/lmstudio-gguf_c8.json` |
+| mlx r1 | 4.3 | 4.4 | 4.2 | 0.2 | 4 | 11 | 21 | 28 | 3 | `rate/mlx_r1.json` |
+| mlx r2 | 5.3 | 7.4 | 6.1 | 1.4 | 18 | 47 | 62 | 69 | 12 | `rate/mlx_r2.json` |
+| mlx r3 | 7.0 | 7.5 | 6.3 | 1.2 | 16 | 56 | 57 | 80 | 13 | `rate/mlx_r3.json` |
+| mlx r4 | 12.7 | 11.5 | 8.6 | 3.0 | 26 | 71 | 73 | 91 | 17 | `rate/mlx_r4.json` |
+| mlx c8 | 10.0 | 10.7 | 10.5 | 0.2 | 2 | 1 | 4 | 6 | 3 | `concurrency/mlx_c8.json` |
+| lmstudio-mlx r1 | 3.1 | 3.4 | 3.2 | 0.1 | 4 | 8 | 18 | 18 | 3 | `rate/lmstudio-mlx_r1.json` |
+| lmstudio-mlx r2 | 4.6 | 5.7 | 4.4 | 1.3 | 24 | 54 | 76 | 59 | 13 | `rate/lmstudio-mlx_r2.json` |
+| lmstudio-mlx r3 | 19.9 | 17.3 | 9.3 | 8.0 | 46 | 190 | 257 | 88 | 36 | `rate/lmstudio-mlx_r3.json` |
+| lmstudio-mlx r4 | 19.1 | 19.0 | 9.7 | 9.3 | 49 | 254 | 266 | 84 | 42 | `rate/lmstudio-mlx_r4.json` |
+| lmstudio-mlx c8 | 9.5 | 10.0 | 7.6 | 2.4 | 24 | 25 | 131 | 88 | 32 | `concurrency/lmstudio-mlx_c8.json` |

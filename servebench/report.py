@@ -1,7 +1,10 @@
 """results/<experiment>/<server>_<x>.json -> results/SUMMARY.md and docs/img/*.png"""
 
+import bisect
 import json
 import pathlib
+import random
+import statistics
 from collections import defaultdict
 
 import matplotlib
@@ -30,6 +33,52 @@ def load(results: pathlib.Path) -> dict:
         for runs in by_server.values():
             runs.sort(key=lambda r: (isinstance(r[0], str), r[0]))
     return out
+
+
+SPIKE_S = 0.03  # a gap between tokens above this is a stall: over every server's p90 at 3 req/s
+NEAR_S = 0.1  # "right after a stall": prefill alone takes about this long for ~268 tokens
+
+
+def stall_stats(run: dict) -> dict | None:
+    """Split a run's token gaps into normal steps and stalls, and check whether stalls end just
+    before another request's first token, against the same stalls placed at random times."""
+    reqs = [r for r in run["requests"] if not r["error"] and r["chunk_times"]]
+    gaps = [(a, b) for r in reqs for a, b in zip(r["chunk_times"], r["chunk_times"][1:])]
+    if not gaps:
+        return None
+    events = []  # overlapping stalls of different streams are one event
+    for a, b in sorted(g for g in gaps if g[1] - g[0] > SPIKE_S):
+        if events and a <= events[-1][1]:
+            events[-1][1] = max(events[-1][1], b)
+        else:
+            events.append([a, b])
+    firsts = [r["chunk_times"][0] for r in reqs]
+
+    def lags(evs):  # first token minus the end of the latest stall (a stream can lag by 20 ms)
+        ends = sorted(e[1] for e in evs)
+        idx = (bisect.bisect_right(ends, f + 0.02) for f in firsts)
+        return [f - ends[i - 1] for f, i in zip(firsts, idx) if i]
+
+    def near(evs):
+        return sum(lag <= NEAR_S for lag in lags(evs)) / len(firsts)
+
+    rng = random.Random(0)
+    start, stop = min(firsts), max(r["chunk_times"][-1] for r in reqs)
+    chance = statistics.mean(
+        near([[t := rng.uniform(start, stop), t + b - a] for a, b in events]) for _ in range(50))
+    normal = [b - a for a, b in gaps if b - a <= SPIKE_S]
+    stalled = sum(b - a for a, b in gaps if b - a > SPIKE_S)
+    return {
+        "itl": [b - a for a, b in gaps],
+        "normal_per_gap": sum(normal) / len(gaps),
+        "stall_per_gap": stalled / len(gaps),
+        "stall_share": stalled / (stalled + sum(normal)),
+        "events": len(events),
+        "stall_s_per_request": sum(b - a for a, b in events) / len(reqs),
+        "lags": lags(events),
+        "near": near(events),
+        "chance": chance,
+    }
 
 
 def ms(v):
@@ -63,7 +112,38 @@ def table(data: dict) -> str:
                     f"| {s['goodput_req_per_s']:.2f} | {100 * s['slo_attainment']:.0f} "
                     f"| {lb:.1f}→{la:.1f} | {'–' if gpu is None else f'{gpu:.0f}'} | `{f}` |")
         lines.append("")
+    lines += stall_table(data)
     return "\n".join(lines)
+
+
+def stall_runs(data: dict) -> list:
+    """Open-loop rates up to 4 req/s, and the closed-loop run with 8 users as the control."""
+    out = []
+    for server in SERVERS:
+        rate = data.get("rate", {}).get(server, [])
+        c8 = data.get("concurrency", {}).get(server, [])
+        out += [(f"{server} r{x:g}", server, r) for x, r in rate if x <= 4]
+        out += [(f"{server} c8", server, r) for x, r in c8 if x == 8]
+    return out
+
+
+def stall_table(data: dict) -> list[str]:
+    rows = [(name, r, stall_stats(r)) for name, _, r in stall_runs(data)]
+    head = ("| run | TPOT p50 | mean token gap | from gaps ≤ 30 ms | from gaps > 30 ms | stall share % | stalls "
+            "| stall ms per request | first tokens ≤ 100 ms after a stall % | same, stalls at random times % | file |")
+    lines = ["## stalls", "",
+             "Token gaps above 30 ms in the open-loop runs and in the closed-loop control (c8).",
+             "Mean token gap = the two columns after it. Times in ms.", "",
+             head, "|" + "---|" * (head.count("|") - 1)]
+    for name, r, s in rows:
+        if s:
+            lines.append(
+                f"| {name} | {r['summary']['tpot_s']['p50'] * 1e3:.1f} "
+                f"| {(s['normal_per_gap'] + s['stall_per_gap']) * 1e3:.1f} "
+                f"| {s['normal_per_gap'] * 1e3:.1f} | {s['stall_per_gap'] * 1e3:.1f} "
+                f"| {100 * s['stall_share']:.0f} | {s['events']} | {s['stall_s_per_request'] * 1e3:.0f} "
+                f"| {100 * s['near']:.0f} | {100 * s['chance']:.0f} | `{r['file']}` |")
+    return lines + [""]
 
 
 def _lines(ax, by_server, metric, title, ylabel, logx=False, p99=False):
@@ -145,6 +225,40 @@ def plots(data: dict, out: pathlib.Path):
         ax.set_xlabel("tokens shared by all prompts")
         ax.legend(fontsize=7)
         figs.append((fig, "prefix.png"))
+
+    r3 = [(n, sv, r) for n, sv, r in stall_runs(data) if n.endswith(" r3")]
+    c8 = [(n, sv, r) for n, sv, r in stall_runs(data) if n.endswith(" c8")]
+    if r3 and c8:
+        fig, ax = plt.subplots(1, 3, figsize=(16, 4.5))
+        for runs, style in ((r3, "-"), (c8, ":")):
+            for name, server, r in runs:
+                itl = sorted(stall_stats(r)["itl"])
+                ax[0].step([v * 1e3 for v in itl], [(i + 1) / len(itl) for i in range(len(itl))],
+                           style, color=COLORS[server], label=name)
+        ax[0].axvline(SPIKE_S * 1e3, color="grey", lw=0.8)
+        ax[0].set_xscale("log")
+        ax[0].set_title("Token gaps: 3 req/s (solid), 8 users (dotted)")
+        ax[0].set_xlabel("gap between tokens, ms (grey: stall threshold)")
+        ax[0].set_ylabel("share of gaps")
+        ax[0].legend(fontsize=7)
+        names = [n for n, _, _ in r3 + c8]
+        st = [stall_stats(r) for _, _, r in r3 + c8]
+        normal = [s["normal_per_gap"] * 1e3 for s in st]
+        ax[1].bar(names, normal, color=[COLORS[sv] for _, sv, _ in r3 + c8], label="gaps ≤ 30 ms")
+        ax[1].bar(names, [s["stall_per_gap"] * 1e3 for s in st], bottom=normal, color="#444444",
+                  label="gaps > 30 ms")
+        ax[1].tick_params(axis="x", rotation=40, labelsize=7)
+        ax[1].set_title("What the mean token gap is made of")
+        ax[1].set_ylabel("ms")
+        ax[1].legend(fontsize=7)
+        for name, server, r in r3:
+            ax[2].hist([v * 1e3 for v in stall_stats(r)["lags"]], bins=range(-20, 201, 10),
+                       histtype="step", color=COLORS[server], label=name)
+        ax[2].set_title("First tokens by time since the latest stall ended, 3 req/s")
+        ax[2].set_xlabel("ms")
+        ax[2].set_ylabel("requests")
+        ax[2].legend(fontsize=7)
+        figs.append((fig, "stalls.png"))
 
     for fig, name in figs:
         fig.tight_layout()

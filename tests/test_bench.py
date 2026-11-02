@@ -110,6 +110,27 @@ def test_queueing_shows_up_in_ttft_not_tpot():
     assert four["tpot_s"]["p50"] == pytest.approx(one["tpot_s"]["p50"], rel=0.3)
 
 
+def test_stall_stats_splits_gaps_and_finds_first_tokens_after_stalls():
+    from servebench.report import stall_stats
+
+    # One long stream stalls for 100 ms twice; a new request's first token ends each stall.
+    long = [0.0, 0.01, 0.02, 0.12, 0.13, 0.14, 0.24, 0.25]
+    def req(times):
+        return {"error": None, "chunk_times": times}
+    s = stall_stats({"requests": [req(long), req([0.12, 0.13]), req([0.24, 0.25])]})
+    assert s["events"] == 2
+    assert s["stall_per_gap"] == pytest.approx(0.2 / 9)
+    assert s["normal_per_gap"] == pytest.approx(0.07 / 9)
+    assert s["stall_share"] == pytest.approx(0.2 / 0.27)
+    assert s["stall_s_per_request"] == pytest.approx(0.2 / 3)
+    assert s["lags"] == pytest.approx([0.0, 0.0])
+    assert s["near"] == pytest.approx(2 / 3)  # the long stream's own first token follows no stall
+    # A stall with nobody starting, far from every first token, does not count as near.
+    quiet = stall_stats({"requests": [req([0.0, 0.01, 0.5, 0.51])]})
+    assert quiet["events"] == 1 and quiet["near"] == 0
+    assert stall_stats({"requests": [req([0.0])]}) is None
+
+
 def test_report_builds_table_and_plots(tmp_path):
     import json
 
