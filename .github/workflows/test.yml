@@ -1,0 +1,10 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    # macOS: the tests read machine state through sysctl, ioreg and memory_pressure.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: make test

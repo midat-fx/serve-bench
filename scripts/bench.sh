@@ -2,6 +2,7 @@
 # Start one server, run the experiment suite against it, stop it.
 #   scripts/bench.sh <llamacpp|mlx|lmstudio-gguf|lmstudio-mlx> [experiment ...]
 #   scripts/bench.sh fake ceiling
+#   ONLY="r8" scripts/bench.sh lmstudio-mlx rate   # re-run single points
 # Experiments: concurrency rate arrivals prompt prefix (default: all).
 # Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
 # GPU use is below MAX_GPU.
@@ -72,6 +73,7 @@ wait_calm() {  # our server is idle here, so GPU use is someone else's
 
 bench() {  # bench <experiment> <name> [servebench run args...]
   local exp=$1 name=$2; shift 2
+  [[ -z "${ONLY:-}" || " $ONLY " == *" $name "* ]] || return 0  # ONLY="r8 c4": re-run single points
   wait_calm
   uv run servebench run --url $URL --model $MODEL --label $server $EOS \
     --out $RESULTS/$exp/${server}_$name.json --tag experiment=$exp --tag "engine=$VERSION" "$@"
