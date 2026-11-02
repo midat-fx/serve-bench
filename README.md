@@ -59,7 +59,8 @@ uv sync --group mlx
 make bench       # every server and experiment, then results/SUMMARY.md and docs/img/*.png
 ```
 
-`scripts/bench.sh <server> [experiment ...]` runs one server. Before each run it waits until
+`scripts/bench.sh <server> [experiment ...]` runs one server, and `ONLY="r8 c4"` limits it to
+single points. Before each run it waits until
 the 1-minute load average is below 6 and other apps use less than 20% of the GPU.
 
 ## Results
@@ -70,7 +71,7 @@ unless marked otherwise. The concurrency, rate and arrival experiments use ~268-
 and 128 output tokens.
 
 **Caveat on conditions.** The mac was shared with other work, often a Blender render on the GPU.
-Each run waited for a quiet moment, but the render sometimes started mid-run. 10 of the 84 runs
+Each run waited for a quiet moment, but the render sometimes started mid-run. 10 of the 96 result files
 began with other apps using more than 15% of the GPU (the `GPU % before` column in
 `SUMMARY.md`). Treat differences under ~15% between servers as noise. Every run is a single
 pass, with no repeats.
@@ -79,20 +80,24 @@ pass, with no repeats.
 
 ![concurrency](docs/img/concurrency.png)
 
-| users | llamacpp TTFT / TPOT / tok/s | lmstudio-gguf | mlx | lmstudio-mlx* |
+| users | llamacpp TTFT / TPOT / tok/s | lmstudio-gguf | mlx | lmstudio-mlx |
 |---|---|---|---|---|
-| 1 | 84 ms / 4.5 ms / 195 | 86 / 4.7 / 181 | 97 / 4.2 / 176 | 166 / 4.1 / 182 |
-| 8 | 573 / 8.5 / **629** | 547 / 10.8 / 532 | 553 / 10.0 / 538 | 2353 / 27.2 / 170 |
-| 16 | 2203 / 9.6 / 590 | 2443 / 10.7 / 528 | 2192 / 16.8 / 464 | 2458 / 9.7 / 540 |
-| 32 | 6054 / 9.3 / 546 | 6900 / 11.3 / 472 | 5779 / 15.1 / 520 | 6453 / 9.6 / 511 |
+| 1 | 84 ms / 4.5 ms / 195 | 86 / 4.7 / 181 | 97 / 4.2 / 176 | 114 / 3.1 / 250 |
+| 8 | 573 / 8.5 / **629** | 547 / 10.8 / 532 | 553 / 10.0 / 538 | 679 / 9.5 / 535 |
+| 16 | 2203 / 9.6 / 590 | 2443 / 10.7 / 528 | 2192 / 16.8 / 464 | 2519 / 9.9 / 528 |
+| 32 | 6054 / 9.3 / 546 | 6900 / 11.3 / 472 | 5779 / 15.1 / 520 | 6659 / 9.4 / 510 |
 
-- A single stream decodes at ~4.1–4.7 ms/token, or 210–240 tokens/s, on every server.
+- A single stream decodes at 4.2–4.7 ms/token (210–240 tokens/s) on three servers.
+  LM Studio's MLX engine is the fastest at 3.1 ms (~320 tokens/s).
 - Throughput rises until all 8 batch slots are full (~530–630 tok/s), then levels off.
   Past 8 users the extra requests only queue: TTFT jumps from ~0.55 s at 8 users to
   2.2–2.5 s at 16, while TPOT barely moves. This is the batch limit showing up as queueing delay.
-- \*lmstudio-mlx is far worse at 2–8 users (TTFT 1.4–2.4 s, throughput flat at ~170 tok/s)
-  and recovers at 16. I have not explained this yet. A re-run is queued to check whether it
-  reproduces.
+- The lmstudio-mlx column comes from a re-run on Nov 2. In the first pass on Nov 1
+  (commit `1f52487`), lmstudio-mlx was stuck at ~170 tok/s with 1.4–2.4 s TTFT at 2–8 users.
+  The re-run on a quiet machine did not reproduce that. Its 16- and 32-user points matched
+  the first pass within 2% (540→528 and 511→510 tok/s). During the first pass, another 27B
+  model was resident in the same LM Studio instance. I could not tell whether it was
+  generating, so I count the dip as interference, not as a property of the server.
 
 ### Goodput under Poisson load
 
@@ -100,18 +105,21 @@ pass, with no repeats.
 
 | offered req/s | llamacpp goodput / TTFT p99 | lmstudio-gguf | mlx | lmstudio-mlx |
 |---|---|---|---|---|
-| 2 | 1.77 / 935 ms | 1.43 / 2301 | 1.73 / 1063 | 1.47 / 1863 |
-| 3 | 1.21 / 3329 | 1.17 / 3540 | **2.56** / 748 | 0.93 / 4167 |
-| 4 | 0.50 / 8880 | 0.18 / 13886 | **3.00** / 1678 | 0.70 / 7427 |
-| 6 | 0.12 / 21725 | 0.10 / 48884 | 0.26 / 18274 | 0.31 / 34041 |
+| 2 | 1.77 / 935 ms | 1.43 / 2301 | 1.73 / 1063 | 1.80 / 664 |
+| 3 | 1.21 / 3329 | 1.17 / 3540 | **2.56** / 748 | 1.33 / 2704 |
+| 4 | 0.50 / 8880 | 0.18 / 13886 | **3.00** / 1678 | 0.24 / 11940 |
+| 6 | 0.12 / 21725 | 0.10 / 48884 | 0.26 / 18274 | 0.11 / 39218 |
 
 - Goodput peaks at 1.4–1.8 req/s for three servers. `mlx_lm.server` keeps going to
   3.0 req/s, about 1.7× the best of the others.
-- Under open-loop load, TPOT on the llama.cpp-based servers climbs to ~20 ms at 3 req/s,
-  while `mlx_lm.server` stays at 7 ms (`rate/*_r3.json`). In the closed-loop run with
-  8 users, llama.cpp held 8.5 ms. My hypothesis: with staggered arrivals, prefills of new
-  requests keep landing between decode steps of running ones. I have not verified this
+- Under open-loop load, TPOT on three servers climbs to ~20 ms at 3 req/s (llama.cpp,
+  LM Studio GGUF and LM Studio MLX), while `mlx_lm.server` stays at 7 ms (`rate/*_r3.json`).
+  In the closed-loop run with 8 users, llama.cpp held 8.5 ms. My hypothesis: with
+  staggered arrivals, prefills of new requests keep landing between decode steps of
+  running ones, and `mlx_lm.server` batches prompts differently. I have not verified this
   with a server-side trace.
+- The lmstudio-mlx rate column was re-run on Nov 2 (load 5.3–5.9, other apps' GPU 0–6%
+  at the start of each run). The first-pass numbers from Nov 1 are in commit `1f52487`.
 - Past capacity, every server degrades the same way: the queue grows for the whole run,
   and p99 TTFT reaches tens of seconds.
 - Goodput at 1 req/s reads 0.83, not 1.0, because the run's duration includes the tail
@@ -135,41 +143,42 @@ MLX servers keep every request within SLO.
 
 ![prompt](docs/img/prompt.png)
 
-| prompt tokens | llamacpp TTFT / TPOT | lmstudio-gguf | mlx |
-|---|---|---|---|
-| 139 | 48 ms / 4.1 ms | 67 / 5.6 | 57 / 3.9 |
-| 1035 | 290 / 4.4 | 295 / 4.6 | 269 / 4.3 |
-| 3595 | 1187 / 5.1 | 1125 / 5.3 | 1027 / 5.0 |
+| prompt tokens | llamacpp TTFT / TPOT | lmstudio-gguf | mlx | lmstudio-mlx |
+|---|---|---|---|---|
+| 139 | 48 ms / 4.1 ms | 67 / 5.6 | 57 / 3.9 | 86 / 3.1 |
+| 1035 | 290 / 4.4 | 295 / 4.6 | 269 / 4.3 | 329 / 3.3 |
+| 3595 | 1187 / 5.1 | 1125 / 5.3 | 1027 / 5.0 | 1049 / 3.7 |
 
 TTFT grows linearly with prompt length: prefill runs at ~3.0k tokens/s (llama.cpp) to
 ~3.5k tokens/s (MLX), counting TTFT as pure prefill. On llama.cpp and mlx, TPOT grows by
-~25% from a 139-token to a 3.6k-token context, because attention reads a longer KV cache. lmstudio-mlx is pending
-the re-run.
+~25% from a 139-token to a 3.6k-token context, because attention reads a longer KV cache.
 
 ### Shared prompt prefix (2060-token prompts, 4 users)
 
 ![prefix](docs/img/prefix.png)
 
-| tokens shared | llamacpp TTFT p50 / p99 (cached) | lmstudio-gguf | mlx |
-|---|---|---|---|
-| 0 | 1960 / 3026 (7) | 1728 / 2750 | 2239 / 2279 (10) |
-| 1024 | 3219 / 5178 (1001) | 1436 / 3364 | 1104 / 1145 (1034) |
-| 1920 | 270 / 1740 (1748) | 126 / 2707 | 200 / 253 (1930) |
+| tokens shared | llamacpp TTFT p50 / p99 (cached) | lmstudio-gguf | mlx | lmstudio-mlx |
+|---|---|---|---|---|
+| 0 | 1960 / 3026 (7) | 1728 / 2750 | 2239 / 2279 (10) | 2173 / 2698 |
+| 1024 | 3219 / 5178 (1001) | 1436 / 3364 | 1104 / 1145 (1034) | 1371 / 1436 |
+| 1920 | 270 / 1740 (1748) | 126 / 2707 | 200 / 253 (1930) | 546 / 570 |
 
-- With 93% of the prompt shared, p50 TTFT drops 7–14×.
+- With 93% of the prompt shared, p50 TTFT drops 7–14× on three servers. On LM Studio's MLX
+  engine it drops 4×.
 - `mlx_lm.server` gets the cleanest result: TTFT falls in proportion to the shared fraction,
   and p99 stays close to p50.
 - The llama.cpp-based servers keep a high p99: the first request on each of the 8 slots
   still pays for the full prefill.
 - On llama.cpp, a half-shared prefix made TTFT *worse* than no sharing (3.2 s vs 2.0 s),
-  even though ~1000 tokens per request came from cache. I have not found the cause yet;
-  it is on the list below.
+  even though ~1000 tokens per request came from cache. I have not found the cause yet.
 
 LM Studio does not report `cached_tokens`.
 
 ## Limitations
 
 - One machine, shared with other work. Single pass per point, no confidence intervals.
+  The only repeat so far, lmstudio-mlx at 16 and 32 users on two different days,
+  agreed within 2%.
 - One model size (1.7B). Its 4-bit quantizations differ slightly between GGUF and MLX
   (~4.9 vs ~4.5 bits/weight), so MLX-vs-llama.cpp results compare engine plus
   quantization. The LM Studio-vs-upstream pairs use identical weight files.
@@ -177,9 +186,11 @@ LM Studio does not report `cached_tokens`.
   templates nor realistic output-length distributions.
 - `mlx_lm.server` cannot ignore EOS. All of its runs still produced the full output length
   (`mean_output_tokens` in each file). LM Studio's MLX engine returns 127 of 128 tokens.
-- Not measured yet: the client's own ceiling against the fake server (`scripts/bench.sh fake
-  ceiling`), and lmstudio-mlx prompt and prefix runs. They are queued behind the quiet-machine
-  gate.
+- The client is Python (asyncio + httpx). Against the fake server at 1 ms/token, it took in
+  56.6k tokens/s from 64 streams, with TPOT p50 1.1 ms vs the 1.0 ms target
+  (`results/ceiling/fake_c64.json`). That is ~90× the best throughput measured on a real
+  server here, so client overhead does not limit these results. The extra ~0.1 ms per token
+  includes the fake server's own `asyncio.sleep` overshoot.
 
 ## Layout
 
