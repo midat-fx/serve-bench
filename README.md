@@ -114,16 +114,53 @@ pass, with no repeats.
   3.0 req/s, about 1.7× the best of the others.
 - Under open-loop load, TPOT on three servers climbs to ~20 ms at 3 req/s (llama.cpp,
   LM Studio GGUF and LM Studio MLX), while `mlx_lm.server` stays at 7 ms (`rate/*_r3.json`).
-  In the closed-loop run with 8 users, llama.cpp held 8.5 ms. My hypothesis: with
-  staggered arrivals, prefills of new requests keep landing between decode steps of
-  running ones, and `mlx_lm.server` batches prompts differently. I have not verified this
-  with a server-side trace.
+  In the closed-loop run with 8 users, llama.cpp held 8.5 ms. The next section explains why.
 - The lmstudio-mlx rate column was re-run on Nov 2 (load 5.3–5.9, other apps' GPU 0–6%
   at the start of each run). The first-pass numbers from Nov 1 are in commit `c4bff78`.
 - Past capacity, every server degrades the same way: the queue grows for the whole run,
   and p99 TTFT reaches tens of seconds.
 - Goodput at 1 req/s reads 0.83, not 1.0, because the run's duration includes the tail
   after the last arrival.
+
+### Why TPOT climbs under open load: prefills stall running streams
+
+![stalls](docs/img/stalls.png)
+
+No new runs here: each result file already holds every chunk's timestamp. A gap above 30 ms
+between two tokens of one stream counts as a stall, and overlapping stalls of different streams
+count as one. To check whether stalls come from other requests starting, I count the first tokens
+that arrive within 100 ms after a stall ends, then repeat the count with the same stalls placed
+at random times. Numbers at 3 req/s (`results/SUMMARY.md`, section "stalls"):
+
+| server | TPOT p50 | mean token gap: from gaps ≤ 30 ms + from gaps > 30 ms | stall ms per request | first tokens right after a stall (random placement) |
+|---|---|---|---|---|
+| `llamacpp` | 19.9 | 8.9 + 11.6 | 259 | 92% (16%) |
+| `lmstudio-gguf` | 21.7 | 11.3 + 10.9 | 229 | 93% (20%) |
+| `mlx` | 7.0 | 6.3 + 1.2 | 57 | 80% (13%) |
+| `lmstudio-mlx` | 19.9 | 9.3 + 8.0 | 257 | 88% (36%) |
+
+- **The hypothesis holds on the llama.cpp servers.** Without stalls, llama.cpp's mean gap at
+  3 req/s is 8.9 ms, close to the 8.2 ms of normal gaps at 8 closed-loop users. 93% of first tokens on both
+  servers land within 10 ms of a stall's end. On llama.cpp the stall share of streaming time
+  grows with the rate: 7%, 17%, 56% at 1, 2, 3 req/s, as TPOT goes 5.2, 10.5, 19.9 ms.
+- **`mlx_lm.server` stalls too, just less.** 74% of its first tokens come 20–50 ms after a stall.
+  It loses 57 ms per request, less than its one-user TTFT of 97 ms, and llama.cpp loses 259 ms,
+  three times its one-user TTFT of 84 ms. Both merge arrivals (2.1 and 1.7 requests per stall),
+  so merging alone does not explain the gap. I have not found the reason. Client timestamps can't
+  show it, and the runs with a smaller `-ub` that could are still to do.
+- **LM Studio MLX is the weakest evidence.** 23% of its gaps are under 1 ms in both closed and
+  open loop: it sends tokens in bunches, so a gap is not one decode step. Moving the threshold to
+  20 or 50 ms moves its stall share between 63% and 38% (49–57% on llama.cpp). First tokens stay
+  above random placement at every threshold, so I read it as the same mechanism with less confidence.
+- **Closed loop hides all of this.** With equal output lengths, the 8-user run on llama.cpp
+  moves in lockstep: its 32 requests form 4 cohorts of 8 that send together and get first tokens
+  together (`concurrency/llamacpp_c8.json`). Prefill starts as the previous cohort finishes, with
+  almost nobody left to interrupt (stalls are 2% of streaming time), so it lands in TTFT (573 ms),
+  not in TPOT. At 3 req/s arrivals are staggered, and 119 of 120 requests arrive while another
+  stream is decoding. Real traffic looks like the second case.
+
+These are single runs that started with other apps at 4–6.4% GPU. Client timestamps show that
+stalls and first tokens coincide, not what the server was doing during a stall.
 
 ### Same mean rate (2 req/s), different burstiness
 
@@ -197,7 +234,7 @@ LM Studio does not report `cached_tokens`.
 ```
 servebench/bench.py       prompts, arrival schedules, streaming client, run loop, machine state
 servebench/metrics.py     per-request metrics, percentiles, goodput
-servebench/report.py      results/SUMMARY.md and docs/img/*.png
+servebench/report.py      results/SUMMARY.md, docs/img/*.png, stall analysis of token gaps
 servebench/fakeserver.py  stdlib fake server with a known timing model (for tests)
 scripts/bench.sh          start a server, run the experiments, stop it
 results/<experiment>/<server>_<x>.json   one file per run: config, machine state, summary, every request

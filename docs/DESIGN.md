@@ -105,6 +105,22 @@ The benchmark ran on a shared M4 Max that was doing other work too. Countermeasu
 This reduces noise without removing it. If a number looks off, check the load columns in
 `results/SUMMARY.md`.
 
+## Reading stalls from client timestamps
+
+`report.stall_stats` looks for prefill interference using only the chunk timestamps every result
+file already has, so it needs no server changes and works the same on all four servers.
+
+- **30 ms threshold.** It sits above every server's p90 gap at 3 req/s (9.8–25.5 ms). On the
+  llama.cpp servers and `mlx_lm.server` the split barely moves between 20 and 50 ms. On LM Studio
+  MLX it does move, because that engine sends tokens in bunches. The README says so.
+- **Random placement as the baseline.** At high load stalls cover much of the run, so "a first
+  token landed near a stall" happens by chance too. Moving the same stalls to random times gives
+  the rate to beat. My first version compared with gaps that were not stalls and used a ±20 ms window, which
+  made both MLX servers look unrelated: their first token comes 20–50 ms after the stall.
+  Plotting the lag showed that, so the window now reaches 100 ms.
+- **Stalls and first tokens only coincide.** This shows timing, not cause. A server-side trace, or
+  runs with a different `-ub`, would be the direct test.
+
 ## Client
 
 Python asyncio + httpx. Timestamps come from `time.perf_counter()` taken when a parsed SSE line
