@@ -93,7 +93,7 @@ pass, with no repeats.
   Past 8 users the extra requests only queue: TTFT jumps from ~0.55 s at 8 users to
   2.2–2.5 s at 16, while TPOT barely moves. This is the batch limit showing up as queueing delay.
 - The lmstudio-mlx column comes from a re-run on Nov 2. In the first pass on Nov 1
-  (commit `1f52487`), lmstudio-mlx was stuck at ~170 tok/s with 1.4–2.4 s TTFT at 2–8 users.
+  (commit `c4bff78`), lmstudio-mlx was stuck at ~170 tok/s with 1.4–2.4 s TTFT at 2–8 users.
   The re-run on a quiet machine did not reproduce that. Its 16- and 32-user points matched
   the first pass within 2% (540→528 and 511→510 tok/s). During the first pass, another 27B
   model was resident in the same LM Studio instance. I could not tell whether it was
@@ -119,7 +119,7 @@ pass, with no repeats.
   running ones, and `mlx_lm.server` batches prompts differently. I have not verified this
   with a server-side trace.
 - The lmstudio-mlx rate column was re-run on Nov 2 (load 5.3–5.9, other apps' GPU 0–6%
-  at the start of each run). The first-pass numbers from Nov 1 are in commit `1f52487`.
+  at the start of each run). The first-pass numbers from Nov 1 are in commit `c4bff78`.
 - Past capacity, every server degrades the same way: the queue grows for the whole run,
   and p99 TTFT reaches tens of seconds.
 - Goodput at 1 req/s reads 0.83, not 1.0, because the run's duration includes the tail
@@ -202,3 +202,8 @@ servebench/fakeserver.py  stdlib fake server with a known timing model (for test
 scripts/bench.sh          start a server, run the experiments, stop it
 results/<experiment>/<server>_<x>.json   one file per run: config, machine state, summary, every request
 ```
+
+Each result file records the commit it ran on (`machine.servebench_commit`). I rewrote history on
+Nov 2 to change the commit email and left the raw files untouched, so the hashes they hold no longer
+resolve. Each one has the same tree as a current commit: `04af42e` = `16709e6`, `6d51e5c` = `df6c6ea`,
+`de02129` = `ece5832`.
