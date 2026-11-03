@@ -244,3 +244,7 @@ Each result file records the commit it ran on (`machine.servebench_commit`). I r
 Nov 2 to change the commit email and left the raw files untouched, so the hashes they hold no longer
 resolve. Each one has the same tree as a current commit: `04af42e` = `16709e6`, `6d51e5c` = `df6c6ea`,
 `de02129` = `ece5832`.
+
+## How it was built
+
+The code, tests and this README were written by Claude Code, Anthropic's AI coding agent, working to Midat's problem statement: Midat chose the problem, set the requirements, reviewed the work and accepted it. Every number above comes from the files in this repository and the commands that produced them.
