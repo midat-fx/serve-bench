@@ -72,22 +72,33 @@ def _cfg(port, **kw):
     return cfg | kw
 
 
-async def _with_fake(cfg_kw, slots=1, prefill=0.0005, decode=0.01):
+async def _with_fake(cfg_kw, slots=1, prefill=0.0005, decode=0.01, timings=None):
     server = await serve("127.0.0.1", 0, slots, prefill, decode)
     port = server.sockets[0].getsockname()[1]
     async with server:
-        return await run(_cfg(port, **cfg_kw))
+        res = await run(_cfg(port, **cfg_kw))
+    if timings is not None:
+        timings += server.timings
+    return res
 
 
 def test_end_to_end_measures_known_latencies():
-    res = asyncio.run(_with_fake({}))
+    # Compare with what the fake server saw itself, not with its nominal sleeps (50 ms
+    # prefill, 10 ms/token): on a slow CI runner asyncio.sleep overshoots both.
+    timings = []
+    res = asyncio.run(_with_fake({}, timings=timings))
     s = res["summary"]
     assert s["n_ok"] == 8
     assert s["mean_prompt_tokens"] == 101  # nonce word + 100
     assert s["mean_output_tokens"] == 21
-    # fake prefill = 101 * 0.5ms ~= 50ms, decode 10ms/token; allow scheduler jitter
-    assert s["ttft_s"]["p50"] == pytest.approx(0.0505, abs=0.015)
-    assert s["tpot_s"]["p50"] == pytest.approx(0.010, abs=0.003)
+    server = timings[1:]  # the first request is the warmup
+    server_ttft = statistics.median(t["ttft_s"] for t in server)
+    server_gap = statistics.mean(g for t in server for g in t["gaps_s"])
+    assert server_ttft >= 0.0505 * 0.95  # the sleeps did run
+    # The client sees a token after the server wrote it, plus connect and loopback time (~2 ms
+    # locally). Under one decode step, so timing the second token instead would fail.
+    assert 0 < s["ttft_s"]["p50"] - server_ttft < 0.010
+    assert s["tpot_s"]["p50"] == pytest.approx(server_gap, rel=0.03)  # n vs n-1 gaps is 5%
     assert res["state_before"]["loadavg"] and res["machine"]["cpu"]
 
 

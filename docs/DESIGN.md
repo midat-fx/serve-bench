@@ -130,6 +130,8 @@ server at 1 ms/token, to check that it sits well above what these servers produc
 ## Tests without a model
 
 `servebench/fakeserver.py` is a stdlib OpenAI-compatible server with a known timing model: slot
-count, prefill seconds per token, decode seconds per token. The tests check that the client
+count, prefill seconds per token, decode seconds per token. It also records the TTFT and token
+gaps it saw itself, and the end-to-end test compares the client with those rather than with the
+nominal sleeps, which a slow CI runner overshoots. The tests check that the client
 recovers those latencies, that queueing shows up in TTFT and not in TPOT, and that goodput and
 the percentile maths are right. `make test` needs no model, no GPU and no network.

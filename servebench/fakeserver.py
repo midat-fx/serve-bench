@@ -3,15 +3,20 @@
 Timing model: a request waits for one of `slots` free slots, then sleeps
 prefill_s_per_token * prompt_words before the first token and decode_s between
 tokens. Tests use it to check that the client measures known latencies.
+`server.timings` records what the server itself saw per request (TTFT and token gaps), so tests
+can compare the client with the server rather than with nominal sleeps that a slow machine
+overshoots.
 """
 
 import argparse
 import asyncio
 import json
+import time
 
 
 async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, decode_s: float):
     sem = asyncio.Semaphore(slots)
+    timings = []
 
     async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
@@ -21,6 +26,7 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
                 if line.lower().startswith("content-length:"):
                     length = int(line.split(":")[1])
             req = json.loads(await reader.readexactly(length))
+            t0, writes = time.perf_counter(), []
             n_prompt = len(req["prompt"].split())
             n_out = req.get("max_tokens", 16)
             writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n"
@@ -34,6 +40,9 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
                     chunk = {"choices": [{"index": 0, "text": f" t{i}"}]}
                     writer.write(f"data: {json.dumps(chunk)}\n\n".encode())
                     await writer.drain()
+                    writes.append(time.perf_counter())
+            gaps = [b - a for a, b in zip(writes, writes[1:])]
+            timings.append({"ttft_s": writes[0] - t0, "gaps_s": gaps})
             usage = {"prompt_tokens": n_prompt, "completion_tokens": n_out}
             writer.write(f"data: {json.dumps({'choices': [], 'usage': usage})}\n\n".encode())
             writer.write(b"data: [DONE]\n\n")
@@ -44,6 +53,7 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
             writer.close()
 
     server = await asyncio.start_server(handle, host, port, backlog=1024)
+    server.timings = timings
     return server
 
 
