@@ -140,8 +140,8 @@ at random times. Numbers at 3 req/s (`results/SUMMARY.md`, section "stalls"):
 | `lmstudio-mlx` | 19.9 | 9.3 + 8.0 | 257 | 88% (36%) |
 
 - **The hypothesis holds on the llama.cpp servers.** Without stalls, llama.cpp's mean gap at
-  3 req/s is 8.9 ms, close to the 8.2 ms of normal gaps at 8 closed-loop users. 93% of first tokens on both
-  servers land within 10 ms of a stall's end. On llama.cpp the stall share of streaming time
+  3 req/s is 8.9 ms, close to the 8.2 ms of normal gaps at 8 closed-loop users. 92.5% of first tokens on llama.cpp
+  and 93% on LM Studio GGUF land within 10 ms of a stall's end. On llama.cpp the stall share of streaming time
   grows with the rate: 7%, 17%, 56% at 1, 2, 3 req/s, as TPOT goes 5.2, 10.5, 19.9 ms.
 - **`mlx_lm.server` stalls too, just less.** 74% of its first tokens come 20–50 ms after a stall.
   It loses 57 ms per request, less than its one-user TTFT of 97 ms, and llama.cpp loses 259 ms,
