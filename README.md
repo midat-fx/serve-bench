@@ -75,10 +75,10 @@ and 128 output tokens.
 Each run waited for a quiet moment, but the render sometimes started mid-run. 10 of the 96 result files
 began with other apps using more than 15% of the GPU (the `GPU % before` column in
 `SUMMARY.md`). Treat differences under ~15% between servers as noise. On Nov 4 I repeated
-llama.cpp's concurrency and rate points twice. Where a point has repeats, the plots draw the median
+llama.cpp's concurrency and rate points twice and `mlx_lm.server`'s once. Where a point has repeats, the plots draw the median
 and a min–max band. The other servers are still single runs (see "Repeats" below).
 
-### Repeats (llama.cpp, Nov 4)
+### Repeats (Nov 4)
 
 Two more passes of the concurrency and rate points (`results/*/llamacpp_*_rep2.json`, `_rep3.json`).
 Each run started with other apps under 20% GPU and load under 8. A minute-by-minute log of the day
@@ -106,6 +106,22 @@ below use.
   the band at 16–32 users.
 - rep2 at 3 req/s overlapped a two-second dry run of my own against the fake server. It is kept as
   measured, and the band includes it.
+
+`mlx_lm.server` got one more pass of the same points (`results/*/mlx_*_rep2.json`), except
+8 req/s. The run was stopped from outside at 15:11, while it waited on the GPU gate
+(`results/machine/gate-2026-11-04-mlx.log`):
+
+| point | Nov 1 | Nov 4 rep2 |
+|---|---|---|
+| 1 user: TTFT ms / tok/s | 97 / 176 | 85 / 221 |
+| 8 users: tok/s | 538 | 585 |
+| 3 req/s: goodput / TPOT ms | 2.56 / 7.0 | 2.56 / 6.4 |
+| 4 req/s: goodput | 3.00 | 2.52 |
+
+Its goodput at 3 req/s repeated exactly, and its low TPOT under open load held. On Nov 4, at
+3 req/s, `mlx_lm.server` beat llama.cpp by ~1.1× (2.56 vs 2.31–2.38), not 1.7×. The Nov 1 one-user
+run started with 22% GPU from other apps, which explains its lower speed. LM Studio's two engines
+have no repeats yet.
 
 ### Concurrency (closed loop)
 
@@ -142,8 +158,8 @@ below use.
 | 6 | 0.12 / 21725 | 0.10 / 48884 | 0.26 / 18274 | 0.11 / 39218 |
 
 - Goodput peaks at 1.4–1.8 req/s for three servers. `mlx_lm.server` keeps going to
-  3.0 req/s, about 1.7× the best of the others. These are single runs: llama.cpp's Nov 4 repeats
-  reached 2.3–3.4 req/s at 3–4 req/s offered (see "Repeats").
+  3.0 req/s, about 1.7× the best of the others. That gap did not survive the repeats: on Nov 4
+  llama.cpp reached 2.3–3.4 req/s at 3–4 req/s offered, and `mlx_lm.server` 2.5–2.6 (see "Repeats").
 - Under open-loop load, TPOT on three servers climbs to ~20 ms at 3 req/s (llama.cpp,
   LM Studio GGUF and LM Studio MLX), while `mlx_lm.server` stays at 7 ms (`rate/*_r3.json`).
   In the closed-loop run with 8 users, llama.cpp held 8.5 ms. The next section explains why.
@@ -246,7 +262,7 @@ LM Studio does not report `cached_tokens`.
 ## Limitations
 
 - One machine, shared with other work. Three passes for llama.cpp's concurrency and rate points,
-  one for everything else; a min–max band over three runs, not a confidence interval.
+  two for `mlx_lm.server`'s, one for everything else; a min–max band over three runs, not a confidence interval.
   Before that, the only repeat was lmstudio-mlx at 16 and 32 users on two different days, which
   agreed within 2%.
 - One model size (1.7B). Its 4-bit quantizations differ slightly between GGUF and MLX
