@@ -6,6 +6,7 @@
 #   REPS="2 3" scripts/bench.sh llamacpp concurrency  # repeats: <server>_<x>_rep<N>.json
 #   LLAMA_ARGS="--cache-ram 0" VARIANT=cache-ram0 scripts/bench.sh llamacpp prefix
 #     # llama-server flags; results labelled llamacpp-cache-ram0, next to the default runs
+#   SIZE=4B scripts/bench.sh mlx concurrency prompt  # Qwen3-4B; results labelled mlx-4b
 # Experiments: concurrency rate arrivals prompt prefix (default: all), chat.
 # Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
 # GPU use is below MAX_GPU.
@@ -13,8 +14,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 MODELS=${MODELS:-$HOME/.lmstudio/models/lmstudio-community}
-GGUF=$MODELS/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q4_K_M.gguf
-MLXDIR=$MODELS/Qwen3-1.7B-MLX-4bit
+SIZE=${SIZE:-1.7B}  # Qwen3 size, as in the lmstudio-community repo names
+GGUF=$MODELS/Qwen3-$SIZE-GGUF/Qwen3-$SIZE-Q4_K_M.gguf
+MLXDIR=$MODELS/Qwen3-$SIZE-MLX-4bit
+size=$(echo $SIZE | tr A-Z a-z)
 LMS=${LMS:-$HOME/.lmstudio/bin/lms}
 SLOTS=8       # concurrent sequences every server is allowed to batch
 CTX=32768     # total KV budget (llama.cpp splits it across slots: 4096 each)
@@ -25,6 +28,7 @@ RESULTS=${RESULTS:-results}  # point dry runs on a busy machine elsewhere
 REPS=${REPS:-1}  # repeat numbers; rep 1 keeps the plain file name
 
 server=$1; shift
+[ $SIZE = 1.7B ] || VARIANT=$size${VARIANT:+-$VARIANT}
 label=$server${VARIANT:+-$VARIANT}
 exps=${*:-concurrency rate arrivals prompt prefix}
 
@@ -34,7 +38,7 @@ NO_THINK='{"chat_template_kwargs": {"enable_thinking": false}}'
 
 case $server in
 llamacpp)
-  URL=http://127.0.0.1:8081 MODEL=qwen3-1.7b EOS=--ignore-eos
+  URL=http://127.0.0.1:8081 MODEL=qwen3-$size EOS=--ignore-eos
   start() { llama-server -m "$GGUF" --port 8081 -np $SLOTS -c $CTX --log-disable ${LLAMA_ARGS:-} \
               >$LOGS/$server.log 2>&1 & }
   stop() { pkill -f "llama-server -m $GGUF --port 8081" || true; }
@@ -50,7 +54,7 @@ mlx)
   version() { echo "mlx-lm $(uv run --group mlx python -c 'import mlx_lm, mlx.core as m; print(mlx_lm.__version__, "mlx", m.__version__)')"; } ;;
 lmstudio-gguf|lmstudio-mlx)
   URL=http://127.0.0.1:1234 MODEL=bench EOS=--ignore-eos
-  key=qwen3-1.7b; [ $server = lmstudio-mlx ] && key=qwen3-1.7b-mlx
+  key=qwen3-$size; [ $server = lmstudio-mlx ] && key=qwen3-$size-mlx
   # Other jobs may use LM Studio too: only unload our own model instance, and only stop
   # the HTTP server if this script started it.
   OWN_SERVER=0; $LMS server status 2>&1 | grep -q ON || OWN_SERVER=1

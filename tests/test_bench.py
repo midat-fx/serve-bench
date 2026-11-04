@@ -190,7 +190,8 @@ def test_report_builds_table_and_plots(tmp_path):
     assert sorted(pngs) == ["arrivals.png", "concurrency.png", "prefix.png", "prompt.png", "rate.png"]
     summary = (tmp_path / "results" / "SUMMARY.md").read_text()
     assert summary.count("| llamacpp |") == 10 and "`arrivals/mlx_burst.json`" in summary
-    from servebench.report import ms
+    from servebench.report import color, ms
+    assert color("lmstudio-mlx-4b") == color("lmstudio-mlx") != color("mlx-4b") == color("mlx")
     row = next(line for line in summary.splitlines() if "`concurrency/mlx_2_rep2.json`" in line)
     t, v = one["summary"]["ttft_s"]["p50"], one["summary"]["output_tok_per_s"]
     assert f"2 reps: {ms(t)}–{ms(t)} · {v:.0f}–{v:.0f}" in row

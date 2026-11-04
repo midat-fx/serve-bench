@@ -87,7 +87,9 @@ def labels(by_server: dict) -> list:
 
 
 def color(label: str) -> str:
-    return COLORS.get(label, "#555555")
+    """A variant (llamacpp-4b) takes its server's colour; plots draw it dashed."""
+    base = [s for s in SERVERS if label == s or label.startswith(s + "-")]
+    return COLORS.get(max(base, key=len, default=""), "#555555")
 
 
 def grouped(runs: list) -> list:
@@ -189,8 +191,8 @@ def _lines(ax, by_server, metric, title, ylabel, logx=False, p99=False):
         pts = [(x, ss) for x, ss in pts if ss]
         xs = [x for x, _ in pts]
         p50 = [[metric(s, "p50") for s in ss] for _, ss in pts]
-        ax.plot(xs, [statistics.median(v) for v in p50], "o-", color=color(server),
-                label=server + (" p50" if p99 else ""))
+        ax.plot(xs, [statistics.median(v) for v in p50], "o-" if server in SERVERS else "o--",
+                color=color(server), label=server + (" p50" if p99 else ""))
         if any(len(v) > 1 for v in p50):
             ax.fill_between(xs, [min(v) for v in p50], [max(v) for v in p50],
                             color=color(server), alpha=0.2, lw=0)

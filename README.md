@@ -120,7 +120,7 @@ below use.
 
 Its goodput at 3 req/s repeated exactly, and its low TPOT under open load held. On Nov 4, at
 3 req/s, `mlx_lm.server` beat llama.cpp by ~1.1× (2.56 vs 2.31–2.38), not 1.7×. The Nov 1 one-user
-run started with 22% GPU from other apps, which explains its lower speed. LM Studio's two engines
+run started with 22% GPU from other apps, which may explain its lower speed. LM Studio's two engines
 have no repeats yet.
 
 ### Concurrency (closed loop)
