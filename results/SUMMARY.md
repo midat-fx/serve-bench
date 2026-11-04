@@ -7,129 +7,153 @@ run shared the GPU with something else (usually a Blender render).
 
 ## arrivals
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | burst | 64/64 | 268 | 8 | 128 | 1617 | 2056 | 8.3 | 9.9 | 272 | 0.27 | 12 | 3.7→6.6 | 5 | – | `arrivals/llamacpp_burst.json` |
-| llamacpp | constant | 64/64 | 268 | 8 | 128 | 116 | 547 | 22.8 | 27.5 | 248 | 1.94 | 100 | 2.7→3.9 | 4 | – | `arrivals/llamacpp_constant.json` |
-| llamacpp | poisson | 64/64 | 267 | 7 | 128 | 225 | 1317 | 19.7 | 27.1 | 215 | 1.60 | 95 | 3.9→3.8 | 8 | – | `arrivals/llamacpp_poisson.json` |
-| lmstudio-gguf | burst | 64/64 | 266 | – | 128 | 4239 | 5347 | 21.5 | 33.5 | 229 | 0.00 | 0 | 4.6→7.5 | 5 | – | `arrivals/lmstudio-gguf_burst.json` |
-| lmstudio-gguf | constant | 64/64 | 266 | – | 128 | 241 | 812 | 14.6 | 20.9 | 251 | 1.96 | 100 | 2.5→4.6 | 4 | – | `arrivals/lmstudio-gguf_constant.json` |
-| lmstudio-gguf | poisson | 64/64 | 265 | – | 128 | 241 | 1467 | 11.0 | 19.3 | 214 | 1.54 | 92 | 4.5→5.9 | 37 | – | `arrivals/lmstudio-gguf_poisson.json` |
-| mlx | burst | 64/64 | 268 | 10 | 128 | 456 | 692 | 10.9 | 11.0 | 274 | 2.14 | 100 | 2.8→2.7 | 5 | – | `arrivals/mlx_burst.json` |
-| mlx | constant | 64/64 | 268 | 10 | 128 | 192 | 290 | 5.1 | 5.4 | 253 | 1.98 | 100 | 4.5→3.7 | 5 | – | `arrivals/mlx_constant.json` |
-| mlx | poisson | 64/64 | 266 | 8 | 128 | 279 | 639 | 5.3 | 6.6 | 219 | 1.71 | 100 | 3.6→3.1 | 4 | – | `arrivals/mlx_poisson.json` |
-| lmstudio-mlx | burst | 64/64 | 268 | – | 127 | 851 | 905 | 8.2 | 9.9 | 271 | 2.14 | 100 | 2.9→4.7 | 4 | – | `arrivals/lmstudio-mlx_burst.json` |
-| lmstudio-mlx | constant | 64/64 | 267 | – | 127 | 150 | 161 | 4.6 | 4.8 | 253 | 1.99 | 100 | 3.0→3.1 | 5 | – | `arrivals/lmstudio-mlx_constant.json` |
-| lmstudio-mlx | poisson | 64/64 | 267 | – | 127 | 132 | 230 | 4.1 | 6.4 | 218 | 1.72 | 100 | 3.1→2.5 | 5 | – | `arrivals/lmstudio-mlx_poisson.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | burst | 64/64 | 268 | 8 | 128 | 1617 | 2056 | 8.3 | 9.9 | 272 | 0.27 | 12 | 3.7→6.6 | 5 | – | – | `arrivals/llamacpp_burst.json` |
+| llamacpp | constant | 64/64 | 268 | 8 | 128 | 116 | 547 | 22.8 | 27.5 | 248 | 1.94 | 100 | 2.7→3.9 | 4 | – | – | `arrivals/llamacpp_constant.json` |
+| llamacpp | poisson | 64/64 | 267 | 7 | 128 | 225 | 1317 | 19.7 | 27.1 | 215 | 1.60 | 95 | 3.9→3.8 | 8 | – | – | `arrivals/llamacpp_poisson.json` |
+| lmstudio-gguf | burst | 64/64 | 266 | – | 128 | 4239 | 5347 | 21.5 | 33.5 | 229 | 0.00 | 0 | 4.6→7.5 | 5 | – | – | `arrivals/lmstudio-gguf_burst.json` |
+| lmstudio-gguf | constant | 64/64 | 266 | – | 128 | 241 | 812 | 14.6 | 20.9 | 251 | 1.96 | 100 | 2.5→4.6 | 4 | – | – | `arrivals/lmstudio-gguf_constant.json` |
+| lmstudio-gguf | poisson | 64/64 | 265 | – | 128 | 241 | 1467 | 11.0 | 19.3 | 214 | 1.54 | 92 | 4.5→5.9 | 37 | – | – | `arrivals/lmstudio-gguf_poisson.json` |
+| mlx | burst | 64/64 | 268 | 10 | 128 | 456 | 692 | 10.9 | 11.0 | 274 | 2.14 | 100 | 2.8→2.7 | 5 | – | – | `arrivals/mlx_burst.json` |
+| mlx | constant | 64/64 | 268 | 10 | 128 | 192 | 290 | 5.1 | 5.4 | 253 | 1.98 | 100 | 4.5→3.7 | 5 | – | – | `arrivals/mlx_constant.json` |
+| mlx | poisson | 64/64 | 266 | 8 | 128 | 279 | 639 | 5.3 | 6.6 | 219 | 1.71 | 100 | 3.6→3.1 | 4 | – | – | `arrivals/mlx_poisson.json` |
+| lmstudio-mlx | burst | 64/64 | 268 | – | 127 | 851 | 905 | 8.2 | 9.9 | 271 | 2.14 | 100 | 2.9→4.7 | 4 | – | – | `arrivals/lmstudio-mlx_burst.json` |
+| lmstudio-mlx | constant | 64/64 | 267 | – | 127 | 150 | 161 | 4.6 | 4.8 | 253 | 1.99 | 100 | 3.0→3.1 | 5 | – | – | `arrivals/lmstudio-mlx_constant.json` |
+| lmstudio-mlx | poisson | 64/64 | 267 | – | 127 | 132 | 230 | 4.1 | 6.4 | 218 | 1.72 | 100 | 3.1→2.5 | 5 | – | – | `arrivals/lmstudio-mlx_poisson.json` |
 
 ## ceiling
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| fake | 1 | 2/2 | 257 | – | 512 | 1.1 | 1.2 | 1.2 | 1.2 | 864 | 1.69 | 100 | 3.0→2.8 | 6 | – | `ceiling/fake_c1.json` |
-| fake | 8 | 16/16 | 257 | – | 512 | 3.1 | 3.7 | 1.2 | 1.2 | 6907 | 13.49 | 100 | 2.7→2.9 | 6 | – | `ceiling/fake_c8.json` |
-| fake | 32 | 64/64 | 257 | – | 512 | 10.6 | 13.4 | 1.1 | 1.1 | 27499 | 53.71 | 100 | 3.3→3.3 | 6 | – | `ceiling/fake_c32.json` |
-| fake | 64 | 128/128 | 257 | – | 512 | 20.0 | 25.8 | 1.1 | 1.1 | 56634 | 110.61 | 100 | 5.1→5.1 | 8 | – | `ceiling/fake_c64.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| fake | 1 | 2/2 | 257 | – | 512 | 1.1 | 1.2 | 1.2 | 1.2 | 864 | 1.69 | 100 | 3.0→2.8 | 6 | – | – | `ceiling/fake_c1.json` |
+| fake | 8 | 16/16 | 257 | – | 512 | 3.1 | 3.7 | 1.2 | 1.2 | 6907 | 13.49 | 100 | 2.7→2.9 | 6 | – | – | `ceiling/fake_c8.json` |
+| fake | 32 | 64/64 | 257 | – | 512 | 10.6 | 13.4 | 1.1 | 1.1 | 27499 | 53.71 | 100 | 3.3→3.3 | 6 | – | – | `ceiling/fake_c32.json` |
+| fake | 64 | 128/128 | 257 | – | 512 | 20.0 | 25.8 | 1.1 | 1.1 | 56634 | 110.61 | 100 | 5.1→5.1 | 8 | – | – | `ceiling/fake_c64.json` |
 
 ## concurrency
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | 1 | 16/16 | 268 | 6 | 128 | 83.8 | 108 | 4.5 | 4.7 | 195 | 1.53 | 100 | 3.9→6.2 | 66 | – | `concurrency/llamacpp_c1.json` |
-| llamacpp | 2 | 16/16 | 266 | 5 | 128 | 141 | 151 | 5.5 | 5.6 | 302 | 2.36 | 100 | 3.7→3.5 | 5 | – | `concurrency/llamacpp_c2.json` |
-| llamacpp | 4 | 16/16 | 266 | 5 | 128 | 280 | 287 | 9.7 | 12.7 | 336 | 2.62 | 100 | 3.6→3.5 | 5 | – | `concurrency/llamacpp_c4.json` |
-| llamacpp | 8 | 32/32 | 267 | 7 | 128 | 573 | 605 | 8.5 | 8.5 | 629 | 4.92 | 100 | 3.2→3.5 | 4 | – | `concurrency/llamacpp_c8.json` |
-| llamacpp | 16 | 64/64 | 267 | 7 | 128 | 2203 | 2391 | 9.6 | 12.8 | 590 | 0.58 | 12 | 3.2→3.0 | 30 | – | `concurrency/llamacpp_c16.json` |
-| llamacpp | 32 | 128/128 | 267 | 8 | 128 | 6054 | 7923 | 9.3 | 17.3 | 546 | 0.27 | 6 | 2.8→4.1 | 4 | – | `concurrency/llamacpp_c32.json` |
-| lmstudio-gguf | 1 | 16/16 | 266 | – | 128 | 86.3 | 115 | 4.7 | 5.6 | 181 | 1.41 | 100 | 3.2→4.2 | 5 | – | `concurrency/lmstudio-gguf_c1.json` |
-| lmstudio-gguf | 2 | 16/16 | 268 | – | 128 | 155 | 160 | 6.1 | 6.2 | 277 | 2.16 | 100 | 3.2→2.9 | 4 | – | `concurrency/lmstudio-gguf_c2.json` |
-| lmstudio-gguf | 4 | 16/16 | 266 | – | 128 | 296 | 302 | 8.6 | 9.5 | 366 | 2.86 | 100 | 2.8→2.5 | 5 | – | `concurrency/lmstudio-gguf_c4.json` |
-| lmstudio-gguf | 8 | 32/32 | 267 | – | 128 | 547 | 587 | 10.8 | 11.1 | 532 | 4.16 | 100 | 2.4→3.4 | 4 | – | `concurrency/lmstudio-gguf_c8.json` |
-| lmstudio-gguf | 16 | 64/64 | 268 | – | 128 | 2443 | 2646 | 10.7 | 11.7 | 528 | 0.52 | 12 | 3.2→2.9 | 4 | – | `concurrency/lmstudio-gguf_c16.json` |
-| lmstudio-gguf | 32 | 128/128 | 268 | – | 128 | 6900 | 8396 | 11.3 | 15.4 | 472 | 0.23 | 6 | 2.7→7.2 | 4 | – | `concurrency/lmstudio-gguf_c32.json` |
-| mlx | 1 | 16/16 | 268 | 10 | 128 | 97.3 | 212 | 4.2 | 6.4 | 176 | 1.38 | 100 | 3.4→3.5 | 22 | – | `concurrency/mlx_c1.json` |
-| mlx | 2 | 16/16 | 266 | 8 | 128 | 147 | 220 | 4.5 | 4.5 | 353 | 2.75 | 100 | 3.2→3.1 | 5 | – | `concurrency/mlx_c2.json` |
-| mlx | 4 | 16/16 | 266 | 8 | 128 | 339 | 400 | 7.6 | 7.9 | 391 | 3.05 | 100 | 2.8→2.7 | 5 | – | `concurrency/mlx_c4.json` |
-| mlx | 8 | 32/32 | 267 | 8 | 128 | 553 | 686 | 10.0 | 12.5 | 538 | 4.21 | 100 | 2.5→2.7 | 5 | – | `concurrency/mlx_c8.json` |
-| mlx | 16 | 64/64 | 267 | 9 | 128 | 2192 | 3135 | 16.8 | 19.4 | 464 | 0.45 | 12 | 2.3→2.6 | 5 | – | `concurrency/mlx_c16.json` |
-| mlx | 32 | 128/128 | 268 | 9 | 128 | 5779 | 6619 | 15.1 | 17.2 | 520 | 0.25 | 6 | 3.1→2.6 | 4 | – | `concurrency/mlx_c32.json` |
-| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 114 | 123 | 3.1 | 3.2 | 250 | 1.97 | 100 | 4.7→5.3 | 8 | – | `concurrency/lmstudio-mlx_c1.json` |
-| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 161 | 259 | 4.5 | 4.8 | 351 | 2.77 | 100 | 5.5→5.9 | 16 | – | `concurrency/lmstudio-mlx_c2.json` |
-| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 416 | 437 | 4.8 | 5.6 | 496 | 3.90 | 100 | 5.4→5.3 | 6 | – | `concurrency/lmstudio-mlx_c4.json` |
-| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 679 | 867 | 9.5 | 13.0 | 535 | 4.21 | 100 | 5.2→5.9 | 6 | – | `concurrency/lmstudio-mlx_c8.json` |
-| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2519 | 2756 | 9.9 | 12.5 | 528 | 0.52 | 12 | 5.9→5.8 | 15 | – | `concurrency/lmstudio-mlx_c16.json` |
-| lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | – | `concurrency/lmstudio-mlx_c32.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | 1 | 16/16 | 268 | 6 | 128 | 83.8 | 108 | 4.5 | 4.7 | 195 | 1.53 | 100 | 3.9→6.2 | 66 | 3 reps: 79.9–85.1 · 195–208 | – | `concurrency/llamacpp_c1.json` |
+| llamacpp | 1 | 16/16 | 268 | 6 | 128 | 79.9 | 83.5 | 4.1 | 4.6 | 208 | 1.63 | 100 | 4.2→3.8 | 6 | 3 reps: 79.9–85.1 · 195–208 | – | `concurrency/llamacpp_c1_rep2.json` |
+| llamacpp | 1 | 16/16 | 268 | 6 | 128 | 85.1 | 92.5 | 4.2 | 4.2 | 208 | 1.63 | 100 | 3.2→3.8 | 0 | 3 reps: 79.9–85.1 · 195–208 | – | `concurrency/llamacpp_c1_rep3.json` |
+| llamacpp | 2 | 16/16 | 266 | 5 | 128 | 141 | 151 | 5.5 | 5.6 | 302 | 2.36 | 100 | 3.7→3.5 | 5 | 3 reps: 141–162 · 231–302 | – | `concurrency/llamacpp_c2.json` |
+| llamacpp | 2 | 16/16 | 268 | 6 | 128 | 144 | 151 | 5.6 | 5.8 | 300 | 2.34 | 100 | 3.4→3.3 | 0 | 3 reps: 141–162 · 231–302 | – | `concurrency/llamacpp_c2_rep2.json` |
+| llamacpp | 2 | 16/16 | 266 | 4 | 128 | 162 | 169 | 7.4 | 9.5 | 231 | 1.81 | 100 | 4.8→5.2 | 0 | 3 reps: 141–162 · 231–302 | – | `concurrency/llamacpp_c2_rep3.json` |
+| llamacpp | 4 | 16/16 | 266 | 5 | 128 | 280 | 287 | 9.7 | 12.7 | 336 | 2.62 | 100 | 3.6→3.5 | 5 | 3 reps: 280–310 · 329–346 | – | `concurrency/llamacpp_c4.json` |
+| llamacpp | 4 | 16/16 | 268 | 6 | 128 | 281 | 286 | 9.4 | 12.1 | 346 | 2.71 | 100 | 3.2→3.2 | 3 | 3 reps: 280–310 · 329–346 | – | `concurrency/llamacpp_c4_rep2.json` |
+| llamacpp | 4 | 16/16 | 268 | 6 | 128 | 310 | 342 | 9.7 | 12.8 | 329 | 2.57 | 100 | 5.5→5.6 | 0 | 3 reps: 280–310 · 329–346 | – | `concurrency/llamacpp_c4_rep3.json` |
+| llamacpp | 8 | 32/32 | 267 | 7 | 128 | 573 | 605 | 8.5 | 8.5 | 629 | 4.92 | 100 | 3.2→3.5 | 4 | 3 reps: 573–622 · 611–629 | – | `concurrency/llamacpp_c8.json` |
+| llamacpp | 8 | 32/32 | 268 | 7 | 128 | 589 | 617 | 8.3 | 8.6 | 625 | 4.88 | 100 | 3.1→4.0 | 28 | 3 reps: 573–622 · 611–629 | – | `concurrency/llamacpp_c8_rep2.json` |
+| llamacpp | 8 | 32/32 | 268 | 7 | 128 | 622 | 676 | 8.3 | 8.5 | 611 | 4.77 | 100 | 5.9→6.1 | 0 | 3 reps: 573–622 · 611–629 | – | `concurrency/llamacpp_c8_rep3.json` |
+| llamacpp | 16 | 64/64 | 267 | 7 | 128 | 2203 | 2391 | 9.6 | 12.8 | 590 | 0.58 | 12 | 3.2→3.0 | 30 | 3 reps: 2130–4988 · 296–627 | – | `concurrency/llamacpp_c16.json` |
+| llamacpp | 16 | 64/64 | 267 | 7 | 128 | 2130 | 2184 | 8.9 | 12.3 | 627 | 0.61 | 12 | 3.7→4.6 | 9 | 3 reps: 2130–4988 · 296–627 | – | `concurrency/llamacpp_c16_rep2.json` |
+| llamacpp | 16 | 64/64 | 267 | 7 | 128 | 4988 | 5842 | 16.5 | 28.1 | 296 | 0.29 | 12 | 6.3→7.0 | 0 | 3 reps: 2130–4988 · 296–627 | – | `concurrency/llamacpp_c16_rep3.json` |
+| llamacpp | 32 | 128/128 | 267 | 8 | 128 | 6054 | 7923 | 9.3 | 17.3 | 546 | 0.27 | 6 | 2.8→4.1 | 4 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32.json` |
+| llamacpp | 32 | 128/128 | 264 | 5 | 128 | 5804 | 6608 | 9.6 | 14.7 | 565 | 0.28 | 6 | 4.8→4.5 | 25 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32_rep2.json` |
+| llamacpp | 32 | 128/128 | 267 | 8 | 128 | 10193 | 12366 | 16.5 | 25.4 | 327 | 0.00 | 0 | 7.0→9.0 | 0 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32_rep3.json` |
+| lmstudio-gguf | 1 | 16/16 | 266 | – | 128 | 86.3 | 115 | 4.7 | 5.6 | 181 | 1.41 | 100 | 3.2→4.2 | 5 | – | – | `concurrency/lmstudio-gguf_c1.json` |
+| lmstudio-gguf | 2 | 16/16 | 268 | – | 128 | 155 | 160 | 6.1 | 6.2 | 277 | 2.16 | 100 | 3.2→2.9 | 4 | – | – | `concurrency/lmstudio-gguf_c2.json` |
+| lmstudio-gguf | 4 | 16/16 | 266 | – | 128 | 296 | 302 | 8.6 | 9.5 | 366 | 2.86 | 100 | 2.8→2.5 | 5 | – | – | `concurrency/lmstudio-gguf_c4.json` |
+| lmstudio-gguf | 8 | 32/32 | 267 | – | 128 | 547 | 587 | 10.8 | 11.1 | 532 | 4.16 | 100 | 2.4→3.4 | 4 | – | – | `concurrency/lmstudio-gguf_c8.json` |
+| lmstudio-gguf | 16 | 64/64 | 268 | – | 128 | 2443 | 2646 | 10.7 | 11.7 | 528 | 0.52 | 12 | 3.2→2.9 | 4 | – | – | `concurrency/lmstudio-gguf_c16.json` |
+| lmstudio-gguf | 32 | 128/128 | 268 | – | 128 | 6900 | 8396 | 11.3 | 15.4 | 472 | 0.23 | 6 | 2.7→7.2 | 4 | – | – | `concurrency/lmstudio-gguf_c32.json` |
+| mlx | 1 | 16/16 | 268 | 10 | 128 | 97.3 | 212 | 4.2 | 6.4 | 176 | 1.38 | 100 | 3.4→3.5 | 22 | – | – | `concurrency/mlx_c1.json` |
+| mlx | 2 | 16/16 | 266 | 8 | 128 | 147 | 220 | 4.5 | 4.5 | 353 | 2.75 | 100 | 3.2→3.1 | 5 | – | – | `concurrency/mlx_c2.json` |
+| mlx | 4 | 16/16 | 266 | 8 | 128 | 339 | 400 | 7.6 | 7.9 | 391 | 3.05 | 100 | 2.8→2.7 | 5 | – | – | `concurrency/mlx_c4.json` |
+| mlx | 8 | 32/32 | 267 | 8 | 128 | 553 | 686 | 10.0 | 12.5 | 538 | 4.21 | 100 | 2.5→2.7 | 5 | – | – | `concurrency/mlx_c8.json` |
+| mlx | 16 | 64/64 | 267 | 9 | 128 | 2192 | 3135 | 16.8 | 19.4 | 464 | 0.45 | 12 | 2.3→2.6 | 5 | – | – | `concurrency/mlx_c16.json` |
+| mlx | 32 | 128/128 | 268 | 9 | 128 | 5779 | 6619 | 15.1 | 17.2 | 520 | 0.25 | 6 | 3.1→2.6 | 4 | – | – | `concurrency/mlx_c32.json` |
+| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 114 | 123 | 3.1 | 3.2 | 250 | 1.97 | 100 | 4.7→5.3 | 8 | – | – | `concurrency/lmstudio-mlx_c1.json` |
+| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 161 | 259 | 4.5 | 4.8 | 351 | 2.77 | 100 | 5.5→5.9 | 16 | – | – | `concurrency/lmstudio-mlx_c2.json` |
+| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 416 | 437 | 4.8 | 5.6 | 496 | 3.90 | 100 | 5.4→5.3 | 6 | – | – | `concurrency/lmstudio-mlx_c4.json` |
+| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 679 | 867 | 9.5 | 13.0 | 535 | 4.21 | 100 | 5.2→5.9 | 6 | – | – | `concurrency/lmstudio-mlx_c8.json` |
+| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2519 | 2756 | 9.9 | 12.5 | 528 | 0.52 | 12 | 5.9→5.8 | 15 | – | – | `concurrency/lmstudio-mlx_c16.json` |
+| lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | – | – | `concurrency/lmstudio-mlx_c32.json` |
 
 ## prefix
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | 0 | 32/32 | 2060 | 7 | 64 | 1960 | 3026 | 22.2 | 41.3 | 74 | 0.00 | 0 | 3.1→2.7 | 5 | – | `prefix/llamacpp_s0.json` |
-| llamacpp | 1024 | 32/32 | 2060 | 1001 | 64 | 3219 | 5178 | 39.4 | 84.3 | 45 | 0.02 | 3 | 2.7→2.0 | 4 | – | `prefix/llamacpp_s1024.json` |
-| llamacpp | 1920 | 32/32 | 2059 | 1748 | 64 | 270 | 1740 | 17.0 | 26.9 | 175 | 2.48 | 91 | 2.1→2.1 | 5 | – | `prefix/llamacpp_s1920.json` |
-| lmstudio-gguf | 0 | 32/32 | 2059 | – | 64 | 1728 | 2750 | 20.8 | 31.3 | 83 | 0.00 | 0 | 5.4→8.0 | 4 | – | `prefix/lmstudio-gguf_s0.json` |
-| lmstudio-gguf | 1024 | 32/32 | 2059 | – | 64 | 1436 | 3364 | 15.9 | 58.3 | 80 | 0.20 | 16 | 2.9→2.5 | 4 | – | `prefix/lmstudio-gguf_s1024.json` |
-| lmstudio-gguf | 1920 | 32/32 | 2060 | – | 64 | 126 | 2707 | 12.3 | 35.3 | 165 | 1.86 | 72 | 2.5→3.3 | 5 | – | `prefix/lmstudio-gguf_s1920.json` |
-| mlx | 0 | 32/32 | 2060 | 10 | 64 | 2239 | 2279 | 8.0 | 9.6 | 93 | 0.00 | 0 | 4.1→4.9 | 36 | – | `prefix/mlx_s0.json` |
-| mlx | 1024 | 32/32 | 2060 | 1034 | 64 | 1104 | 1145 | 8.2 | 8.5 | 158 | 0.00 | 0 | 4.3→3.7 | 5 | – | `prefix/mlx_s1024.json` |
-| mlx | 1920 | 32/32 | 2060 | 1930 | 64 | 200 | 253 | 8.0 | 8.6 | 357 | 5.58 | 100 | 3.5→3.2 | 4 | – | `prefix/mlx_s1920.json` |
-| lmstudio-mlx | 0 | 32/32 | 2058 | – | 63 | 2173 | 2698 | 7.0 | 27.5 | 86 | 0.00 | 0 | 3.4→3.3 | 6 | – | `prefix/lmstudio-mlx_s0.json` |
-| lmstudio-mlx | 1024 | 32/32 | 2060 | – | 63 | 1371 | 1436 | 6.9 | 17.1 | 140 | 0.21 | 9 | 3.5→3.4 | 8 | – | `prefix/lmstudio-mlx_s1024.json` |
-| lmstudio-mlx | 1920 | 32/32 | 2059 | – | 63 | 546 | 570 | 6.8 | 8.1 | 260 | 4.13 | 100 | 3.2→3.1 | 6 | – | `prefix/lmstudio-mlx_s1920.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | 0 | 32/32 | 2060 | 7 | 64 | 1960 | 3026 | 22.2 | 41.3 | 74 | 0.00 | 0 | 3.1→2.7 | 5 | – | – | `prefix/llamacpp_s0.json` |
+| llamacpp | 1024 | 32/32 | 2060 | 1001 | 64 | 3219 | 5178 | 39.4 | 84.3 | 45 | 0.02 | 3 | 2.7→2.0 | 4 | – | – | `prefix/llamacpp_s1024.json` |
+| llamacpp | 1920 | 32/32 | 2059 | 1748 | 64 | 270 | 1740 | 17.0 | 26.9 | 175 | 2.48 | 91 | 2.1→2.1 | 5 | – | – | `prefix/llamacpp_s1920.json` |
+| lmstudio-gguf | 0 | 32/32 | 2059 | – | 64 | 1728 | 2750 | 20.8 | 31.3 | 83 | 0.00 | 0 | 5.4→8.0 | 4 | – | – | `prefix/lmstudio-gguf_s0.json` |
+| lmstudio-gguf | 1024 | 32/32 | 2059 | – | 64 | 1436 | 3364 | 15.9 | 58.3 | 80 | 0.20 | 16 | 2.9→2.5 | 4 | – | – | `prefix/lmstudio-gguf_s1024.json` |
+| lmstudio-gguf | 1920 | 32/32 | 2060 | – | 64 | 126 | 2707 | 12.3 | 35.3 | 165 | 1.86 | 72 | 2.5→3.3 | 5 | – | – | `prefix/lmstudio-gguf_s1920.json` |
+| mlx | 0 | 32/32 | 2060 | 10 | 64 | 2239 | 2279 | 8.0 | 9.6 | 93 | 0.00 | 0 | 4.1→4.9 | 36 | – | – | `prefix/mlx_s0.json` |
+| mlx | 1024 | 32/32 | 2060 | 1034 | 64 | 1104 | 1145 | 8.2 | 8.5 | 158 | 0.00 | 0 | 4.3→3.7 | 5 | – | – | `prefix/mlx_s1024.json` |
+| mlx | 1920 | 32/32 | 2060 | 1930 | 64 | 200 | 253 | 8.0 | 8.6 | 357 | 5.58 | 100 | 3.5→3.2 | 4 | – | – | `prefix/mlx_s1920.json` |
+| lmstudio-mlx | 0 | 32/32 | 2058 | – | 63 | 2173 | 2698 | 7.0 | 27.5 | 86 | 0.00 | 0 | 3.4→3.3 | 6 | – | – | `prefix/lmstudio-mlx_s0.json` |
+| lmstudio-mlx | 1024 | 32/32 | 2060 | – | 63 | 1371 | 1436 | 6.9 | 17.1 | 140 | 0.21 | 9 | 3.5→3.4 | 8 | – | – | `prefix/lmstudio-mlx_s1024.json` |
+| lmstudio-mlx | 1920 | 32/32 | 2059 | – | 63 | 546 | 570 | 6.8 | 8.1 | 260 | 4.13 | 100 | 3.2→3.1 | 6 | – | – | `prefix/lmstudio-mlx_s1920.json` |
 
 ## prompt
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | 128 | 8/8 | 139 | 2 | 64 | 47.8 | 119 | 4.1 | 4.3 | 198 | 3.09 | 100 | 4.7→4.6 | 5 | – | `prompt/llamacpp_t128.json` |
-| llamacpp | 512 | 8/8 | 523 | 2 | 64 | 144 | 184 | 4.3 | 5.0 | 149 | 2.32 | 100 | 3.1→3.2 | 4 | – | `prompt/llamacpp_t512.json` |
-| llamacpp | 1024 | 8/8 | 1035 | 2 | 64 | 290 | 320 | 4.4 | 4.9 | 111 | 1.73 | 100 | 2.6→2.6 | 4 | – | `prompt/llamacpp_t1024.json` |
-| llamacpp | 2048 | 8/8 | 2057 | 2 | 64 | 574 | 577 | 4.6 | 4.7 | 74 | 1.16 | 100 | 2.5→2.6 | 5 | – | `prompt/llamacpp_t2048.json` |
-| llamacpp | 3584 | 8/8 | 3595 | 2 | 64 | 1187 | 1325 | 5.1 | 5.2 | 42 | 0.00 | 0 | 2.8→2.6 | 5 | – | `prompt/llamacpp_t3584.json` |
-| lmstudio-gguf | 128 | 8/8 | 139 | – | 64 | 67.0 | 77.0 | 5.6 | 6.0 | 157 | 2.45 | 100 | 4.4→5.1 | 34 | – | `prompt/lmstudio-gguf_t128.json` |
-| lmstudio-gguf | 512 | 8/8 | 523 | – | 64 | 147 | 153 | 4.5 | 4.6 | 148 | 2.31 | 100 | 4.9→4.7 | 4 | – | `prompt/lmstudio-gguf_t512.json` |
-| lmstudio-gguf | 1024 | 8/8 | 1034 | – | 64 | 295 | 299 | 4.6 | 4.7 | 109 | 1.71 | 100 | 4.3→5.1 | 4 | – | `prompt/lmstudio-gguf_t1024.json` |
-| lmstudio-gguf | 2048 | 8/8 | 2059 | – | 64 | 608 | 640 | 4.8 | 4.9 | 70 | 1.09 | 100 | 5.1→5.6 | 5 | – | `prompt/lmstudio-gguf_t2048.json` |
-| lmstudio-gguf | 3584 | 8/8 | 3594 | – | 64 | 1125 | 1262 | 5.3 | 6.0 | 43 | 0.00 | 0 | 5.2→5.7 | 5 | – | `prompt/lmstudio-gguf_t3584.json` |
-| mlx | 128 | 8/8 | 139 | 9 | 64 | 56.7 | 57.4 | 3.9 | 4.0 | 209 | 3.27 | 100 | 3.9→3.8 | 5 | – | `prompt/mlx_t128.json` |
-| mlx | 512 | 8/8 | 523 | 9 | 64 | 146 | 146 | 4.2 | 4.2 | 157 | 2.45 | 100 | 3.7→3.4 | 4 | – | `prompt/mlx_t512.json` |
-| mlx | 1024 | 8/8 | 1034 | 8 | 64 | 269 | 271 | 4.3 | 4.3 | 119 | 1.85 | 100 | 3.4→3.4 | 5 | – | `prompt/mlx_t1024.json` |
-| mlx | 2048 | 8/8 | 2057 | 7 | 64 | 554 | 579 | 4.6 | 4.8 | 75 | 1.18 | 100 | 3.4→3.1 | 4 | – | `prompt/mlx_t2048.json` |
-| mlx | 3584 | 8/8 | 3592 | 6 | 64 | 1027 | 1123 | 5.0 | 5.1 | 47 | 0.09 | 12 | 3.0→4.2 | 4 | – | `prompt/mlx_t3584.json` |
-| lmstudio-mlx | 128 | 8/8 | 139 | – | 63 | 86.3 | 102 | 3.1 | 3.7 | 221 | 3.50 | 100 | 5.8→6.0 | 8 | – | `prompt/lmstudio-mlx_t128.json` |
-| lmstudio-mlx | 512 | 8/8 | 522 | – | 63 | 183 | 187 | 3.1 | 3.2 | 167 | 2.65 | 100 | 5.9→5.8 | 8 | – | `prompt/lmstudio-mlx_t512.json` |
-| lmstudio-mlx | 1024 | 8/8 | 1034 | – | 63 | 329 | 340 | 3.3 | 3.9 | 116 | 1.85 | 100 | 5.8→7.8 | 6 | – | `prompt/lmstudio-mlx_t1024.json` |
-| lmstudio-mlx | 2048 | 8/8 | 2059 | – | 63 | 548 | 554 | 3.5 | 3.6 | 82 | 1.31 | 100 | 4.2→3.9 | 8 | – | `prompt/lmstudio-mlx_t2048.json` |
-| lmstudio-mlx | 3584 | 8/8 | 3595 | – | 63 | 1049 | 1096 | 3.7 | 3.8 | 49 | 0.00 | 0 | 3.3→3.4 | 6 | – | `prompt/lmstudio-mlx_t3584.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | 128 | 8/8 | 139 | 2 | 64 | 47.8 | 119 | 4.1 | 4.3 | 198 | 3.09 | 100 | 4.7→4.6 | 5 | – | – | `prompt/llamacpp_t128.json` |
+| llamacpp | 512 | 8/8 | 523 | 2 | 64 | 144 | 184 | 4.3 | 5.0 | 149 | 2.32 | 100 | 3.1→3.2 | 4 | – | – | `prompt/llamacpp_t512.json` |
+| llamacpp | 1024 | 8/8 | 1035 | 2 | 64 | 290 | 320 | 4.4 | 4.9 | 111 | 1.73 | 100 | 2.6→2.6 | 4 | – | – | `prompt/llamacpp_t1024.json` |
+| llamacpp | 2048 | 8/8 | 2057 | 2 | 64 | 574 | 577 | 4.6 | 4.7 | 74 | 1.16 | 100 | 2.5→2.6 | 5 | – | – | `prompt/llamacpp_t2048.json` |
+| llamacpp | 3584 | 8/8 | 3595 | 2 | 64 | 1187 | 1325 | 5.1 | 5.2 | 42 | 0.00 | 0 | 2.8→2.6 | 5 | – | – | `prompt/llamacpp_t3584.json` |
+| lmstudio-gguf | 128 | 8/8 | 139 | – | 64 | 67.0 | 77.0 | 5.6 | 6.0 | 157 | 2.45 | 100 | 4.4→5.1 | 34 | – | – | `prompt/lmstudio-gguf_t128.json` |
+| lmstudio-gguf | 512 | 8/8 | 523 | – | 64 | 147 | 153 | 4.5 | 4.6 | 148 | 2.31 | 100 | 4.9→4.7 | 4 | – | – | `prompt/lmstudio-gguf_t512.json` |
+| lmstudio-gguf | 1024 | 8/8 | 1034 | – | 64 | 295 | 299 | 4.6 | 4.7 | 109 | 1.71 | 100 | 4.3→5.1 | 4 | – | – | `prompt/lmstudio-gguf_t1024.json` |
+| lmstudio-gguf | 2048 | 8/8 | 2059 | – | 64 | 608 | 640 | 4.8 | 4.9 | 70 | 1.09 | 100 | 5.1→5.6 | 5 | – | – | `prompt/lmstudio-gguf_t2048.json` |
+| lmstudio-gguf | 3584 | 8/8 | 3594 | – | 64 | 1125 | 1262 | 5.3 | 6.0 | 43 | 0.00 | 0 | 5.2→5.7 | 5 | – | – | `prompt/lmstudio-gguf_t3584.json` |
+| mlx | 128 | 8/8 | 139 | 9 | 64 | 56.7 | 57.4 | 3.9 | 4.0 | 209 | 3.27 | 100 | 3.9→3.8 | 5 | – | – | `prompt/mlx_t128.json` |
+| mlx | 512 | 8/8 | 523 | 9 | 64 | 146 | 146 | 4.2 | 4.2 | 157 | 2.45 | 100 | 3.7→3.4 | 4 | – | – | `prompt/mlx_t512.json` |
+| mlx | 1024 | 8/8 | 1034 | 8 | 64 | 269 | 271 | 4.3 | 4.3 | 119 | 1.85 | 100 | 3.4→3.4 | 5 | – | – | `prompt/mlx_t1024.json` |
+| mlx | 2048 | 8/8 | 2057 | 7 | 64 | 554 | 579 | 4.6 | 4.8 | 75 | 1.18 | 100 | 3.4→3.1 | 4 | – | – | `prompt/mlx_t2048.json` |
+| mlx | 3584 | 8/8 | 3592 | 6 | 64 | 1027 | 1123 | 5.0 | 5.1 | 47 | 0.09 | 12 | 3.0→4.2 | 4 | – | – | `prompt/mlx_t3584.json` |
+| lmstudio-mlx | 128 | 8/8 | 139 | – | 63 | 86.3 | 102 | 3.1 | 3.7 | 221 | 3.50 | 100 | 5.8→6.0 | 8 | – | – | `prompt/lmstudio-mlx_t128.json` |
+| lmstudio-mlx | 512 | 8/8 | 522 | – | 63 | 183 | 187 | 3.1 | 3.2 | 167 | 2.65 | 100 | 5.9→5.8 | 8 | – | – | `prompt/lmstudio-mlx_t512.json` |
+| lmstudio-mlx | 1024 | 8/8 | 1034 | – | 63 | 329 | 340 | 3.3 | 3.9 | 116 | 1.85 | 100 | 5.8→7.8 | 6 | – | – | `prompt/lmstudio-mlx_t1024.json` |
+| lmstudio-mlx | 2048 | 8/8 | 2059 | – | 63 | 548 | 554 | 3.5 | 3.6 | 82 | 1.31 | 100 | 4.2→3.9 | 8 | – | – | `prompt/lmstudio-mlx_t2048.json` |
+| lmstudio-mlx | 3584 | 8/8 | 3595 | – | 63 | 1049 | 1096 | 3.7 | 3.8 | 49 | 0.00 | 0 | 3.3→3.4 | 6 | – | – | `prompt/lmstudio-mlx_t3584.json` |
 
 ## rate
 
-| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | file |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | 1 | 40/40 | 268 | 8 | 128 | 94.2 | 374 | 5.2 | 8.9 | 106 | 0.83 | 100 | 3.6→3.0 | 4 | – | `rate/llamacpp_r1.json` |
-| llamacpp | 2 | 80/80 | 268 | 8 | 128 | 97.3 | 935 | 10.5 | 19.5 | 230 | 1.77 | 99 | 3.0→2.5 | 4 | – | `rate/llamacpp_r2.json` |
-| llamacpp | 3 | 120/120 | 266 | 7 | 128 | 961 | 3329 | 19.9 | 30.9 | 299 | 1.21 | 52 | 3.7→4.4 | 5 | – | `rate/llamacpp_r3.json` |
-| llamacpp | 4 | 160/160 | 266 | 7 | 128 | 4451 | 8880 | 18.8 | 25.5 | 381 | 0.50 | 17 | 4.0→3.6 | 15 | – | `rate/llamacpp_r4.json` |
-| llamacpp | 6 | 240/240 | 269 | 9 | 128 | 10645 | 21725 | 15.2 | 21.2 | 472 | 0.12 | 3 | 3.4→3.4 | 4 | – | `rate/llamacpp_r6.json` |
-| llamacpp | 8 | 320/320 | 268 | 9 | 128 | 23341 | 58685 | 17.4 | 27.1 | 405 | 0.08 | 2 | 3.2→2.8 | 6 | – | `rate/llamacpp_r8.json` |
-| lmstudio-gguf | 1 | 40/40 | 268 | – | 128 | 270 | 874 | 6.9 | 14.3 | 105 | 0.82 | 100 | 5.3→4.9 | 20 | – | `rate/lmstudio-gguf_r1.json` |
-| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 251 | 2301 | 14.9 | 24.6 | 225 | 1.43 | 81 | 4.7→5.2 | 4 | – | `rate/lmstudio-gguf_r2.json` |
-| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 1017 | 3540 | 21.7 | 32.5 | 303 | 1.17 | 49 | 5.3→5.8 | 4 | – | `rate/lmstudio-gguf_r3.json` |
-| lmstudio-gguf | 4 | 160/160 | 267 | – | 128 | 3674 | 13886 | 21.8 | 27.9 | 343 | 0.18 | 7 | 3.5→5.8 | 5 | – | `rate/lmstudio-gguf_r4.json` |
-| lmstudio-gguf | 6 | 240/240 | 269 | – | 128 | 22194 | 48884 | 21.0 | 29.3 | 328 | 0.10 | 4 | 6.6→8.1 | 5 | – | `rate/lmstudio-gguf_r6.json` |
-| lmstudio-gguf | 8 | 320/320 | 268 | – | 128 | 24150 | 66972 | 16.0 | 34.5 | 374 | 0.08 | 3 | 5.0→9.4 | 5 | – | `rate/lmstudio-gguf_r8.json` |
-| mlx | 1 | 40/40 | 267 | 9 | 128 | 117 | 552 | 4.3 | 5.3 | 106 | 0.83 | 100 | 2.7→3.0 | 4 | – | `rate/mlx_r1.json` |
-| mlx | 2 | 80/80 | 266 | 8 | 128 | 322 | 1063 | 5.3 | 25.1 | 227 | 1.73 | 98 | 3.2→2.9 | 4 | – | `rate/mlx_r2.json` |
-| mlx | 3 | 120/120 | 267 | 9 | 128 | 344 | 748 | 7.0 | 13.3 | 328 | 2.56 | 100 | 4.0→3.9 | 4 | – | `rate/mlx_r3.json` |
-| mlx | 4 | 160/160 | 267 | 9 | 128 | 523 | 1678 | 12.7 | 17.0 | 445 | 3.00 | 86 | 4.2→3.5 | 5 | – | `rate/mlx_r4.json` |
-| mlx | 6 | 240/240 | 268 | 8 | 128 | 6578 | 18274 | 16.5 | 20.4 | 499 | 0.26 | 7 | 3.4→3.1 | 37 | – | `rate/mlx_r6.json` |
-| mlx | 8 | 320/320 | 269 | 9 | 128 | 16210 | 33378 | 15.5 | 17.6 | 541 | 0.13 | 3 | 3.2→4.8 | 4 | – | `rate/mlx_r8.json` |
-| lmstudio-mlx | 1 | 40/40 | 268 | – | 127 | 127 | 209 | 3.1 | 4.2 | 106 | 0.83 | 100 | 5.4→5.5 | 6 | – | `rate/lmstudio-mlx_r1.json` |
-| lmstudio-mlx | 2 | 80/80 | 267 | – | 127 | 139 | 664 | 4.6 | 16.4 | 229 | 1.80 | 100 | 5.3→6.1 | 6 | – | `rate/lmstudio-mlx_r2.json` |
-| lmstudio-mlx | 3 | 120/120 | 267 | – | 127 | 925 | 2704 | 19.9 | 21.9 | 313 | 1.33 | 54 | 5.9→5.4 | 6 | – | `rate/lmstudio-mlx_r3.json` |
-| lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 5619 | 11940 | 19.1 | 22.8 | 355 | 0.24 | 9 | 5.3→5.4 | 6 | – | `rate/lmstudio-mlx_r4.json` |
-| lmstudio-mlx | 6 | 240/240 | 269 | – | 127 | 17666 | 39218 | 17.8 | 20.8 | 369 | 0.11 | 4 | 5.6→8.3 | 0 | – | `rate/lmstudio-mlx_r6.json` |
-| lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | – | `rate/lmstudio-mlx_r8.json` |
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | 1 | 40/40 | 268 | 8 | 128 | 94.2 | 374 | 5.2 | 8.9 | 106 | 0.83 | 100 | 3.6→3.0 | 4 | 3 reps: 94.2–108 · 105–106 | – | `rate/llamacpp_r1.json` |
+| llamacpp | 1 | 40/40 | 267 | 7 | 128 | 108 | 421 | 5.6 | 22.4 | 105 | 0.82 | 100 | 4.3→3.2 | 0 | 3 reps: 94.2–108 · 105–106 | – | `rate/llamacpp_r1_rep2.json` |
+| llamacpp | 1 | 40/40 | 266 | 6 | 128 | 94.3 | 172 | 5.6 | 13.7 | 106 | 0.83 | 100 | 7.0→5.7 | 0 | 3 reps: 94.2–108 · 105–106 | – | `rate/llamacpp_r1_rep3.json` |
+| llamacpp | 2 | 80/80 | 268 | 8 | 128 | 97.3 | 935 | 10.5 | 19.5 | 230 | 1.77 | 99 | 3.0→2.5 | 4 | 3 reps: 97.3–154 · 225–230 | – | `rate/llamacpp_r2.json` |
+| llamacpp | 2 | 80/80 | 267 | 8 | 128 | 154 | 529 | 20.6 | 29.1 | 225 | 1.76 | 100 | 2.2→5.8 | 0 | 3 reps: 97.3–154 · 225–230 | – | `rate/llamacpp_r2_rep2.json` |
+| llamacpp | 2 | 80/80 | 268 | 8 | 128 | 122 | 279 | 13.2 | 20.5 | 229 | 1.79 | 100 | 5.8→5.3 | 0 | 3 reps: 97.3–154 · 225–230 | – | `rate/llamacpp_r2_rep3.json` |
+| llamacpp | 3 | 120/120 | 266 | 7 | 128 | 961 | 3329 | 19.9 | 30.9 | 299 | 1.21 | 52 | 3.7→4.4 | 5 | 3 reps: 136–961 · 299–321 | – | `rate/llamacpp_r3.json` |
+| llamacpp | 3 | 120/120 | 268 | 9 | 128 | 189 | 1327 | 18.8 | 25.6 | 320 | 2.31 | 92 | 7.0→11.8 | 4 | 3 reps: 136–961 · 299–321 | – | `rate/llamacpp_r3_rep2.json` |
+| llamacpp | 3 | 120/120 | 265 | 6 | 128 | 136 | 1481 | 17.1 | 23.2 | 321 | 2.38 | 95 | 5.2→6.2 | 0 | 3 reps: 136–961 · 299–321 | – | `rate/llamacpp_r3_rep3.json` |
+| llamacpp | 4 | 160/160 | 266 | 7 | 128 | 4451 | 8880 | 18.8 | 25.5 | 381 | 0.50 | 17 | 4.0→3.6 | 15 | 3 reps: 194–4451 · 381–449 | – | `rate/llamacpp_r4.json` |
+| llamacpp | 4 | 160/160 | 267 | 8 | 128 | 194 | 1255 | 13.8 | 16.9 | 449 | 3.40 | 97 | 6.7→5.4 | 0 | 3 reps: 194–4451 · 381–449 | – | `rate/llamacpp_r4_rep2.json` |
+| llamacpp | 4 | 160/160 | 267 | 8 | 128 | 1518 | 5087 | 17.8 | 21.8 | 410 | 1.16 | 36 | 6.1→6.1 | 4 | 3 reps: 194–4451 · 381–449 | – | `rate/llamacpp_r4_rep3.json` |
+| llamacpp | 6 | 240/240 | 269 | 9 | 128 | 10645 | 21725 | 15.2 | 21.2 | 472 | 0.12 | 3 | 3.4→3.4 | 4 | 3 reps: 7402–10645 · 414–487 | – | `rate/llamacpp_r6.json` |
+| llamacpp | 6 | 240/240 | 269 | 9 | 128 | 7402 | 19026 | 15.5 | 18.5 | 487 | 0.70 | 18 | 5.1→5.4 | 0 | 3 reps: 7402–10645 · 414–487 | – | `rate/llamacpp_r6_rep2.json` |
+| llamacpp | 6 | 240/240 | 269 | 9 | 128 | 9939 | 29266 | 18.1 | 24.1 | 414 | 0.36 | 11 | 6.2→7.1 | 4 | 3 reps: 7402–10645 · 414–487 | – | `rate/llamacpp_r6_rep3.json` |
+| llamacpp | 8 | 320/320 | 268 | 9 | 128 | 23341 | 58685 | 17.4 | 27.1 | 405 | 0.08 | 2 | 3.2→2.8 | 6 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8.json` |
+| llamacpp | 8 | 320/320 | 269 | 10 | 128 | 24143 | 57771 | 19.3 | 23.1 | 406 | 0.19 | 6 | 4.6→12.2 | 0 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8_rep2.json` |
+| llamacpp | 8 | 320/320 | 266 | 7 | 128 | 15940 | 42115 | 15.5 | 20.2 | 480 | 0.21 | 6 | 4.9→5.3 | 5 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8_rep3.json` |
+| lmstudio-gguf | 1 | 40/40 | 268 | – | 128 | 270 | 874 | 6.9 | 14.3 | 105 | 0.82 | 100 | 5.3→4.9 | 20 | – | – | `rate/lmstudio-gguf_r1.json` |
+| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 251 | 2301 | 14.9 | 24.6 | 225 | 1.43 | 81 | 4.7→5.2 | 4 | – | – | `rate/lmstudio-gguf_r2.json` |
+| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 1017 | 3540 | 21.7 | 32.5 | 303 | 1.17 | 49 | 5.3→5.8 | 4 | – | – | `rate/lmstudio-gguf_r3.json` |
+| lmstudio-gguf | 4 | 160/160 | 267 | – | 128 | 3674 | 13886 | 21.8 | 27.9 | 343 | 0.18 | 7 | 3.5→5.8 | 5 | – | – | `rate/lmstudio-gguf_r4.json` |
+| lmstudio-gguf | 6 | 240/240 | 269 | – | 128 | 22194 | 48884 | 21.0 | 29.3 | 328 | 0.10 | 4 | 6.6→8.1 | 5 | – | – | `rate/lmstudio-gguf_r6.json` |
+| lmstudio-gguf | 8 | 320/320 | 268 | – | 128 | 24150 | 66972 | 16.0 | 34.5 | 374 | 0.08 | 3 | 5.0→9.4 | 5 | – | – | `rate/lmstudio-gguf_r8.json` |
+| mlx | 1 | 40/40 | 267 | 9 | 128 | 117 | 552 | 4.3 | 5.3 | 106 | 0.83 | 100 | 2.7→3.0 | 4 | – | – | `rate/mlx_r1.json` |
+| mlx | 2 | 80/80 | 266 | 8 | 128 | 322 | 1063 | 5.3 | 25.1 | 227 | 1.73 | 98 | 3.2→2.9 | 4 | – | – | `rate/mlx_r2.json` |
+| mlx | 3 | 120/120 | 267 | 9 | 128 | 344 | 748 | 7.0 | 13.3 | 328 | 2.56 | 100 | 4.0→3.9 | 4 | – | – | `rate/mlx_r3.json` |
+| mlx | 4 | 160/160 | 267 | 9 | 128 | 523 | 1678 | 12.7 | 17.0 | 445 | 3.00 | 86 | 4.2→3.5 | 5 | – | – | `rate/mlx_r4.json` |
+| mlx | 6 | 240/240 | 268 | 8 | 128 | 6578 | 18274 | 16.5 | 20.4 | 499 | 0.26 | 7 | 3.4→3.1 | 37 | – | – | `rate/mlx_r6.json` |
+| mlx | 8 | 320/320 | 269 | 9 | 128 | 16210 | 33378 | 15.5 | 17.6 | 541 | 0.13 | 3 | 3.2→4.8 | 4 | – | – | `rate/mlx_r8.json` |
+| lmstudio-mlx | 1 | 40/40 | 268 | – | 127 | 127 | 209 | 3.1 | 4.2 | 106 | 0.83 | 100 | 5.4→5.5 | 6 | – | – | `rate/lmstudio-mlx_r1.json` |
+| lmstudio-mlx | 2 | 80/80 | 267 | – | 127 | 139 | 664 | 4.6 | 16.4 | 229 | 1.80 | 100 | 5.3→6.1 | 6 | – | – | `rate/lmstudio-mlx_r2.json` |
+| lmstudio-mlx | 3 | 120/120 | 267 | – | 127 | 925 | 2704 | 19.9 | 21.9 | 313 | 1.33 | 54 | 5.9→5.4 | 6 | – | – | `rate/lmstudio-mlx_r3.json` |
+| lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 5619 | 11940 | 19.1 | 22.8 | 355 | 0.24 | 9 | 5.3→5.4 | 6 | – | – | `rate/lmstudio-mlx_r4.json` |
+| lmstudio-mlx | 6 | 240/240 | 269 | – | 127 | 17666 | 39218 | 17.8 | 20.8 | 369 | 0.11 | 4 | 5.6→8.3 | 0 | – | – | `rate/lmstudio-mlx_r6.json` |
+| lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | – | – | `rate/lmstudio-mlx_r8.json` |
 
 ## stalls
 
