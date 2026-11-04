@@ -4,7 +4,7 @@ import statistics
 import pytest
 
 import servebench.bench
-from servebench.bench import arrivals, make_prompts, run
+from servebench.bench import arrivals, lengths, make_prompts, run
 from servebench.fakeserver import serve
 from servebench.metrics import Request, percentile, summarize
 
@@ -63,6 +63,25 @@ def test_prompts_share_exactly_the_prefix():
     unique = make_prompts(3, tokens=50, shared_prefix=0, seed=0, nonce="abc")
     assert len({p.split()[0] for p in unique}) == 3  # no common first token
     assert all(len(p.split()) == 51 for p in unique)
+
+
+def test_lognormal_lengths_keep_the_mean():
+    assert lengths(5, 128, 0, "s") == [128] * 5
+    xs = lengths(4000, 128, 0.6, "s")
+    assert xs == lengths(4000, 128, 0.6, "s") and min(xs) >= 1
+    assert statistics.mean(xs) == pytest.approx(128, rel=0.05)
+    assert statistics.median(xs) < 128  # right-skewed, like real chat lengths
+
+
+def test_chat_endpoint_with_per_request_lengths():
+    res = asyncio.run(_with_fake({"endpoint": "chat", "n": 12, "prompt_sigma": 0.5,
+                                  "output_sigma": 0.5, "max_tokens": 20}, decode=0.001))
+    reqs = [r for r in res["requests"] if not r["error"]]
+    assert len(reqs) == 12
+    # The fake server counts words like the real ones count tokens: nonce-index word + body.
+    assert len({r["prompt_tokens"] for r in reqs}) > 1 and len({r["output_tokens"] for r in reqs}) > 1
+    assert [r["output_tokens"] for r in reqs] == lengths(13, 20, 0.5, "0-olen")[1:]  # after 1 warmup
+    assert [r["prompt_tokens"] for r in reqs] == [n + 1 for n in lengths(13, 100, 0.5, "0-plen")[1:]]
 
 
 def _cfg(port, **kw):

@@ -27,7 +27,9 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
                     length = int(line.split(":")[1])
             req = json.loads(await reader.readexactly(length))
             t0, writes = time.perf_counter(), []
-            n_prompt = len(req["prompt"].split())
+            chat = "messages" in req
+            text = " ".join(m["content"] for m in req["messages"]) if chat else req["prompt"]
+            n_prompt = len(text.split())
             n_out = req.get("max_tokens", 16)
             writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n"
                          b"Connection: close\r\n\r\n")
@@ -37,7 +39,8 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
                 for i in range(n_out):
                     if i:
                         await asyncio.sleep(decode_s)
-                    chunk = {"choices": [{"index": 0, "text": f" t{i}"}]}
+                    piece = {"delta": {"content": f" t{i}"}} if chat else {"text": f" t{i}"}
+                    chunk = {"choices": [{"index": 0, **piece}]}
                     writer.write(f"data: {json.dumps(chunk)}\n\n".encode())
                     await writer.drain()
                     writes.append(time.perf_counter())

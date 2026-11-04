@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import math
 import os
 import platform
 import random
@@ -28,16 +29,29 @@ WORDS = (
 ).split()
 
 
-def make_prompts(n: int, tokens: int, shared_prefix: int, seed: int, nonce: str) -> list[str]:
-    """n prompts of ~`tokens` words. The first `shared_prefix` words are identical across
-    prompts; the rest are unique per request. `nonce` keeps runs from hitting a server's
-    prompt cache left over from an earlier run."""
+def lengths(n: int, mean: int, sigma: float, seed: str) -> list[int]:
+    """Per-request lengths: all `mean` when sigma is 0, else lognormal with that mean
+    (mu = ln(mean) - sigma^2 / 2), rounded and at least 1."""
+    if not sigma:
+        return [mean] * n
+    rng = random.Random(seed)
+    mu = math.log(mean) - sigma**2 / 2
+    return [max(1, round(rng.lognormvariate(mu, sigma))) for _ in range(n)]
+
+
+def make_prompts(n: int, tokens: int | list[int], shared_prefix: int, seed: int,
+                 nonce: str) -> list[str]:
+    """n prompts of ~`tokens` words (one length, or one per prompt). The first `shared_prefix`
+    words are identical across prompts; the rest are unique per request. `nonce` keeps runs
+    from hitting a server's prompt cache left over from an earlier run."""
+    if isinstance(tokens, int):
+        tokens = [tokens] * n
     rng = random.Random(f"{seed}-prefix")
     prefix = f"{nonce} " + " ".join(rng.choice(WORDS) for _ in range(shared_prefix))
     out = []
     for i in range(n):
         rng = random.Random(f"{seed}-{i}")
-        body = " ".join(rng.choice(WORDS) for _ in range(max(tokens - shared_prefix, 1)))
+        body = " ".join(rng.choice(WORDS) for _ in range(max(tokens[i] - shared_prefix, 1)))
         out.append(f"{prefix}\n{i}: {body}" if shared_prefix else f"{nonce}-{i}: {body}")
     return out
 
@@ -66,8 +80,9 @@ async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0
     clock = time.perf_counter
     req.t_send = clock() - t0
     chunks, usage_out = 0, None
+    path = "/v1/chat/completions" if "messages" in body else "/v1/completions"
     try:
-        async with client.stream("POST", f"{url}/v1/completions", json=body) as r:
+        async with client.stream("POST", f"{url}{path}", json=body) as r:
             if r.status_code != 200:
                 await r.aread()
                 req.error = f"http {r.status_code}"
@@ -86,7 +101,12 @@ async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0
                 if t := obj.get("timings"):  # llama-server only
                     req.server_timings = {k: t[k] for k in TIMING_KEYS if k in t}
                 for ch in obj.get("choices") or []:
-                    if ch.get("text"):
+                    delta = ch.get("delta") or {}
+                    if delta.get("reasoning_content"):
+                        # Thinking left on: TTFT would time the reasoning, not the answer.
+                        req.error = "reasoning output"
+                        return
+                    if ch.get("text") or delta.get("content"):
                         req.chunk_times.append(clock() - t0)
                         chunks += 1
     except (httpx.HTTPError, json.JSONDecodeError) as e:
@@ -147,14 +167,20 @@ def machine_info() -> dict:
 
 async def run(cfg: dict) -> dict:
     """cfg keys: url model pattern n concurrency rate burst prompt_tokens shared_prefix
-    max_tokens ignore_eos seed warmup slo_ttft slo_tpot extra_body"""
+    max_tokens ignore_eos seed warmup slo_ttft slo_tpot extra_body, and optionally
+    endpoint (completions|chat), prompt_sigma, output_sigma (lognormal lengths)"""
     nonce = secrets.token_hex(4)
-    prompts = make_prompts(cfg["n"] + cfg["warmup"], cfg["prompt_tokens"], cfg["shared_prefix"],
-                           cfg["seed"], nonce)
+    total = cfg["n"] + cfg["warmup"]
+    plen = lengths(total, cfg["prompt_tokens"], cfg.get("prompt_sigma", 0), f"{cfg['seed']}-plen")
+    outs = lengths(total, cfg["max_tokens"], cfg.get("output_sigma", 0), f"{cfg['seed']}-olen")
+    prompts = list(zip(make_prompts(total, plen, cfg["shared_prefix"], cfg["seed"], nonce), outs))
     warm, prompts = prompts[: cfg["warmup"]], prompts[cfg["warmup"]:]
 
-    def body(p):
-        b = {"model": cfg["model"], "prompt": p, "max_tokens": cfg["max_tokens"],
+    def body(po):
+        p, max_tokens = po
+        text = {"messages": [{"role": "user", "content": p}]} if cfg.get("endpoint") == "chat" \
+            else {"prompt": p}
+        b = {"model": cfg["model"], **text, "max_tokens": max_tokens,
              "temperature": 0, "stream": True, "stream_options": {"include_usage": True}}
         if cfg["ignore_eos"]:
             b["ignore_eos"] = True

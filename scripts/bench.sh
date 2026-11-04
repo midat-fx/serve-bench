@@ -6,7 +6,7 @@
 #   REPS="2 3" scripts/bench.sh llamacpp concurrency  # repeats: <server>_<x>_rep<N>.json
 #   LLAMA_ARGS="--cache-ram 0" VARIANT=cache-ram0 scripts/bench.sh llamacpp prefix
 #     # llama-server flags; results labelled llamacpp-cache-ram0, next to the default runs
-# Experiments: concurrency rate arrivals prompt prefix (default: all).
+# Experiments: concurrency rate arrivals prompt prefix (default: all), chat.
 # Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
 # GPU use is below MAX_GPU.
 set -euo pipefail
@@ -28,6 +28,10 @@ server=$1; shift
 label=$server${VARIANT:+-$VARIANT}
 exps=${*:-concurrency rate arrivals prompt prefix}
 
+# Qwen3 thinks before answering unless the chat template is told not to; with thinking on,
+# TTFT would time the first reasoning token. llama.cpp and LM Studio take it per request.
+NO_THINK='{"chat_template_kwargs": {"enable_thinking": false}}'
+
 case $server in
 llamacpp)
   URL=http://127.0.0.1:8081 MODEL=qwen3-1.7b EOS=--ignore-eos
@@ -38,9 +42,10 @@ llamacpp)
 mlx)
   # mlx_lm.server has no ignore_eos; random-word prompts make early EOS rare and
   # mean_output_tokens in each result shows whether it happened.
-  URL=http://127.0.0.1:8082 MODEL=default_model EOS=
+  URL=http://127.0.0.1:8082 MODEL=default_model EOS= NO_THINK='{}'  # set on the server instead
   start() { uv run --group mlx mlx_lm.server --model "$MLXDIR" --port 8082 --decode-concurrency $SLOTS \
-              --prompt-concurrency $SLOTS --log-level WARNING >$LOGS/$server.log 2>&1 & }
+              --prompt-concurrency $SLOTS --chat-template-args '{"enable_thinking": false}' \
+              --log-level WARNING >$LOGS/$server.log 2>&1 & }
   stop() { pkill -f "mlx_lm.server --model $MLXDIR --port 8082" || true; }
   version() { echo "mlx-lm $(uv run --group mlx python -c 'import mlx_lm, mlx.core as m; print(mlx_lm.__version__, "mlx", m.__version__)')"; } ;;
 lmstudio-gguf|lmstudio-mlx)
@@ -117,6 +122,11 @@ prefix)  # 2048-token prompts, 4 users, growing shared prefix
   for s in 0 1024 1920; do
     bench prefix s$s --concurrency 4 --n 32 --prompt-tokens 2048 --shared-prefix $s \
       --max-tokens 64 --tag x=$s
+  done ;;
+chat)  # chat template, lognormal lengths around 256 prompt / 128 output tokens
+  for c in 1 8; do
+    bench chat c$c --endpoint chat --concurrency $c --n $((c < 4 ? 16 : 4 * c)) \
+      --prompt-sigma 0.6 --output-sigma 0.6 --extra-body "$NO_THINK" --tag x=$c
   done ;;
 ceiling)  # run with the fake server: how fast can the client ingest tokens?
   for c in 1 8 32 64; do
