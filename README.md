@@ -107,21 +107,29 @@ below use.
 - rep2 at 3 req/s overlapped a two-second dry run of my own against the fake server. It is kept as
   measured, and the band includes it.
 
-`mlx_lm.server` got one more pass of the same points (`results/*/mlx_*_rep2.json`), except
-8 req/s. The run was stopped from outside at 15:11, while it waited on the GPU gate
-(`results/machine/gate-2026-11-04-mlx.log`):
+`mlx_lm.server` got two more passes of the same points (`results/*/mlx_*_rep2.json`, `_rep3.json`).
+rep2 ran on Nov 4 afternoon under the old gate. It was stopped from outside at 15:11, while it waited
+on the GPU gate (`results/machine/gate-2026-11-04-mlx.log`), so its 8 req/s point ran after rep3, at 00:15 with load 51.
+From Nov 4 22:40 the gate checks only GPU (other apps under 20%), not load. rep3 ran 22:55–00:16
+with the 1-minute load average at 57–83 before each run (`state_before` in each file;
+minute-by-minute in `results/machine/samples-2026-11-04.tsv` and `-11-05.tsv`):
 
-| point | Nov 1 | Nov 4 rep2 |
-|---|---|---|
-| 1 user: TTFT ms / tok/s | 97 / 176 | 85 / 221 |
-| 8 users: tok/s | 538 | 585 |
-| 3 req/s: goodput / TPOT ms | 2.56 / 7.0 | 2.56 / 6.4 |
-| 4 req/s: goodput | 3.00 | 2.52 |
+| point | Nov 1 | Nov 4 rep2 | Nov 4–5 rep3 (load 57–83) |
+|---|---|---|---|
+| 1 user: TTFT ms / tok/s | 97 / 176 | 85 / 221 | 104 / 135 |
+| 8 users: tok/s | 538 | 585 | 434 |
+| 3 req/s: goodput / TPOT ms | 2.56 / 7.0 | 2.56 / 6.4 | 2.14 / 16.4 |
+| 4 req/s: goodput | 3.00 | 2.52 | 0.40 |
+| 8 req/s: goodput / TPOT ms | 0.13 / 15.5 | 0.05 / 22.5 | 0.06 / 21.8 |
 
-Its goodput at 3 req/s repeated exactly, and its low TPOT under open load held. On Nov 4, at
-3 req/s, `mlx_lm.server` beat llama.cpp by ~1.1× (2.56 vs 2.31–2.38), not 1.7×. The Nov 1 one-user
-run started with 22% GPU from other apps, which may explain its lower speed. LM Studio's two engines
-have no repeats yet.
+On a quiet machine, its goodput at 3 req/s repeated exactly, and its low TPOT under open load held.
+On Nov 4, at 3 req/s, `mlx_lm.server` beat llama.cpp by ~1.1× (2.56 vs 2.31–2.38), not 1.7×. The
+Nov 1 one-user run started with 22% GPU from other apps, which may explain its lower speed.
+rep3 was slower at every point: 135 tok/s for one user instead of 176–221, and 16.4 ms TPOT at 3 req/s
+instead of 6.4–7.0. Other apps kept the CPU busy (load 57–83 on 16 cores) while the GPU stayed under the
+gate, so I read rep3 as what this server does on a CPU-loaded machine, not as noise. That makes the band
+at those points wider than the run-to-run spread on a quiet machine. LM Studio's two engines have no
+repeats yet.
 
 ### Concurrency (closed loop)
 
