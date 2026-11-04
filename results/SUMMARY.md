@@ -53,12 +53,24 @@ run shared the GPU with something else (usually a Blender render).
 | llamacpp | 32 | 128/128 | 267 | 8 | 128 | 6054 | 7923 | 9.3 | 17.3 | 546 | 0.27 | 6 | 2.8→4.1 | 4 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32.json` |
 | llamacpp | 32 | 128/128 | 264 | 5 | 128 | 5804 | 6608 | 9.6 | 14.7 | 565 | 0.28 | 6 | 4.8→4.5 | 25 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32_rep2.json` |
 | llamacpp | 32 | 128/128 | 267 | 8 | 128 | 10193 | 12366 | 16.5 | 25.4 | 327 | 0.00 | 0 | 7.0→9.0 | 0 | 3 reps: 5804–10193 · 327–565 | – | `concurrency/llamacpp_c32_rep3.json` |
-| lmstudio-gguf | 1 | 16/16 | 266 | – | 128 | 86.3 | 115 | 4.7 | 5.6 | 181 | 1.41 | 100 | 3.2→4.2 | 5 | – | – | `concurrency/lmstudio-gguf_c1.json` |
-| lmstudio-gguf | 2 | 16/16 | 268 | – | 128 | 155 | 160 | 6.1 | 6.2 | 277 | 2.16 | 100 | 3.2→2.9 | 4 | – | – | `concurrency/lmstudio-gguf_c2.json` |
-| lmstudio-gguf | 4 | 16/16 | 266 | – | 128 | 296 | 302 | 8.6 | 9.5 | 366 | 2.86 | 100 | 2.8→2.5 | 5 | – | – | `concurrency/lmstudio-gguf_c4.json` |
-| lmstudio-gguf | 8 | 32/32 | 267 | – | 128 | 547 | 587 | 10.8 | 11.1 | 532 | 4.16 | 100 | 2.4→3.4 | 4 | – | – | `concurrency/lmstudio-gguf_c8.json` |
-| lmstudio-gguf | 16 | 64/64 | 268 | – | 128 | 2443 | 2646 | 10.7 | 11.7 | 528 | 0.52 | 12 | 3.2→2.9 | 4 | – | – | `concurrency/lmstudio-gguf_c16.json` |
-| lmstudio-gguf | 32 | 128/128 | 268 | – | 128 | 6900 | 8396 | 11.3 | 15.4 | 472 | 0.23 | 6 | 2.7→7.2 | 4 | – | – | `concurrency/lmstudio-gguf_c32.json` |
+| lmstudio-gguf | 1 | 16/16 | 266 | – | 128 | 86.3 | 115 | 4.7 | 5.6 | 181 | 1.41 | 100 | 3.2→4.2 | 5 | 3 reps: 86.3–109 · 126–181 | – | `concurrency/lmstudio-gguf_c1.json` |
+| lmstudio-gguf | 1 | 16/16 | 266 | – | 128 | 98.8 | 107 | 6.2 | 7.2 | 143 | 1.12 | 100 | 49.4→53.1 | 8 | 3 reps: 86.3–109 · 126–181 | – | `concurrency/lmstudio-gguf_c1_rep2.json` |
+| lmstudio-gguf | 1 | 16/16 | 268 | – | 128 | 109 | 262 | 6.9 | 7.9 | 126 | 0.98 | 100 | 66.6→65.3 | 0 | 3 reps: 86.3–109 · 126–181 | – | `concurrency/lmstudio-gguf_c1_rep3.json` |
+| lmstudio-gguf | 2 | 16/16 | 268 | – | 128 | 155 | 160 | 6.1 | 6.2 | 277 | 2.16 | 100 | 3.2→2.9 | 4 | 3 reps: 155–212 · 184–277 | – | `concurrency/lmstudio-gguf_c2.json` |
+| lmstudio-gguf | 2 | 16/16 | 266 | – | 128 | 206 | 254 | 8.9 | 9.4 | 192 | 1.50 | 100 | 53.5→54.5 | 0 | 3 reps: 155–212 · 184–277 | – | `concurrency/lmstudio-gguf_c2_rep2.json` |
+| lmstudio-gguf | 2 | 16/16 | 266 | – | 128 | 212 | 236 | 9.2 | 10.3 | 184 | 1.44 | 100 | 64.8→61.1 | 0 | 3 reps: 155–212 · 184–277 | – | `concurrency/lmstudio-gguf_c2_rep3.json` |
+| lmstudio-gguf | 4 | 16/16 | 266 | – | 128 | 296 | 302 | 8.6 | 9.5 | 366 | 2.86 | 100 | 2.8→2.5 | 5 | 3 reps: 296–379 · 287–366 | – | `concurrency/lmstudio-gguf_c4.json` |
+| lmstudio-gguf | 4 | 16/16 | 266 | – | 128 | 379 | 384 | 10.9 | 11.6 | 293 | 2.29 | 100 | 50.8→49.1 | 4 | 3 reps: 296–379 · 287–366 | – | `concurrency/lmstudio-gguf_c4_rep2.json` |
+| lmstudio-gguf | 4 | 16/16 | 268 | – | 128 | 378 | 408 | 11.0 | 11.5 | 287 | 2.24 | 100 | 54.4→55.0 | 0 | 3 reps: 296–379 · 287–366 | – | `concurrency/lmstudio-gguf_c4_rep3.json` |
+| lmstudio-gguf | 8 | 32/32 | 267 | – | 128 | 547 | 587 | 10.8 | 11.1 | 532 | 4.16 | 100 | 2.4→3.4 | 4 | 3 reps: 547–736 · 415–532 | – | `concurrency/lmstudio-gguf_c8.json` |
+| lmstudio-gguf | 8 | 32/32 | 265 | – | 128 | 736 | 788 | 13.5 | 14.8 | 415 | 3.24 | 100 | 49.9→52.2 | 16 | 3 reps: 547–736 · 415–532 | – | `concurrency/lmstudio-gguf_c8_rep2.json` |
+| lmstudio-gguf | 8 | 32/32 | 268 | – | 128 | 706 | 757 | 13.1 | 14.7 | 427 | 3.34 | 100 | 53.8→59.1 | 0 | 3 reps: 547–736 · 415–532 | – | `concurrency/lmstudio-gguf_c8_rep3.json` |
+| lmstudio-gguf | 16 | 64/64 | 268 | – | 128 | 2443 | 2646 | 10.7 | 11.7 | 528 | 0.52 | 12 | 3.2→2.9 | 4 | 3 reps: 2443–3173 · 417–528 | – | `concurrency/lmstudio-gguf_c16.json` |
+| lmstudio-gguf | 16 | 64/64 | 268 | – | 128 | 3173 | 3274 | 13.8 | 15.9 | 417 | 0.41 | 12 | 49.9→51.7 | 16 | 3 reps: 2443–3173 · 417–528 | – | `concurrency/lmstudio-gguf_c16_rep2.json` |
+| lmstudio-gguf | 16 | 64/64 | 267 | – | 128 | 3030 | 3123 | 13.0 | 13.6 | 436 | 0.43 | 12 | 57.6→55.9 | 0 | 3 reps: 2443–3173 · 417–528 | – | `concurrency/lmstudio-gguf_c16_rep3.json` |
+| lmstudio-gguf | 32 | 128/128 | 268 | – | 128 | 6900 | 8396 | 11.3 | 15.4 | 472 | 0.23 | 6 | 2.7→7.2 | 4 | 3 reps: 6900–8250 · 403–472 | – | `concurrency/lmstudio-gguf_c32.json` |
+| lmstudio-gguf | 32 | 128/128 | 266 | – | 128 | 8250 | 8602 | 14.4 | 15.1 | 403 | 0.20 | 6 | 49.9→54.9 | 17 | 3 reps: 6900–8250 · 403–472 | – | `concurrency/lmstudio-gguf_c32_rep2.json` |
+| lmstudio-gguf | 32 | 126/128 | 267 | – | 128 | 7625 | 7860 | 13.3 | 17.0 | 436 | 0.22 | 6 | 55.0→52.2 | 0 | 3 reps: 6900–8250 · 403–472 | – | `concurrency/lmstudio-gguf_c32_rep3.json` |
 | mlx | 1 | 16/16 | 268 | 10 | 128 | 97.3 | 212 | 4.2 | 6.4 | 176 | 1.38 | 100 | 3.4→3.5 | 22 | 3 reps: 85.3–104 · 135–221 | – | `concurrency/mlx_c1.json` |
 | mlx | 1 | 16/16 | 266 | 8 | 128 | 85.3 | 85.9 | 3.9 | 3.9 | 221 | 1.73 | 100 | 3.5→3.5 | 0 | 3 reps: 85.3–104 · 135–221 | – | `concurrency/mlx_c1_rep2.json` |
 | mlx | 1 | 16/16 | 266 | 8 | 128 | 104 | 130 | 5.8 | 14.2 | 135 | 1.05 | 100 | 82.3→82.0 | 0 | 3 reps: 85.3–104 · 135–221 | – | `concurrency/mlx_c1_rep3.json` |
@@ -77,12 +89,24 @@ run shared the GPU with something else (usually a Blender render).
 | mlx | 32 | 128/128 | 268 | 9 | 128 | 5779 | 6619 | 15.1 | 17.2 | 520 | 0.25 | 6 | 3.1→2.6 | 4 | 3 reps: 5734–6380 · 478–536 | – | `concurrency/mlx_c32.json` |
 | mlx | 32 | 128/128 | 263 | 4 | 128 | 5734 | 6172 | 14.8 | 16.1 | 536 | 0.26 | 6 | 3.9→4.4 | 18 | 3 reps: 5734–6380 · 478–536 | – | `concurrency/mlx_c32_rep2.json` |
 | mlx | 32 | 128/128 | 268 | 9 | 128 | 6380 | 7340 | 16.4 | 17.6 | 478 | 0.23 | 6 | 57.1→62.5 | 0 | 3 reps: 5734–6380 · 478–536 | – | `concurrency/mlx_c32_rep3.json` |
-| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 114 | 123 | 3.1 | 3.2 | 250 | 1.97 | 100 | 4.7→5.3 | 8 | – | – | `concurrency/lmstudio-mlx_c1.json` |
-| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 161 | 259 | 4.5 | 4.8 | 351 | 2.77 | 100 | 5.5→5.9 | 16 | – | – | `concurrency/lmstudio-mlx_c2.json` |
-| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 416 | 437 | 4.8 | 5.6 | 496 | 3.90 | 100 | 5.4→5.3 | 6 | – | – | `concurrency/lmstudio-mlx_c4.json` |
-| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 679 | 867 | 9.5 | 13.0 | 535 | 4.21 | 100 | 5.2→5.9 | 6 | – | – | `concurrency/lmstudio-mlx_c8.json` |
-| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2519 | 2756 | 9.9 | 12.5 | 528 | 0.52 | 12 | 5.9→5.8 | 15 | – | – | `concurrency/lmstudio-mlx_c16.json` |
-| lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | – | – | `concurrency/lmstudio-mlx_c32.json` |
+| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 114 | 123 | 3.1 | 3.2 | 250 | 1.97 | 100 | 4.7→5.3 | 8 | 3 reps: 114–146 · 177–250 | – | `concurrency/lmstudio-mlx_c1.json` |
+| lmstudio-mlx | 1 | 16/16 | 268 | – | 127 | 146 | 195 | 4.5 | 5.0 | 177 | 1.39 | 100 | 56.4→56.1 | 0 | 3 reps: 114–146 · 177–250 | – | `concurrency/lmstudio-mlx_c1_rep2.json` |
+| lmstudio-mlx | 1 | 16/16 | 266 | – | 127 | 133 | 147 | 4.6 | 5.4 | 181 | 1.43 | 100 | 41.6→42.4 | 4 | 3 reps: 114–146 · 177–250 | – | `concurrency/lmstudio-mlx_c1_rep3.json` |
+| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 161 | 259 | 4.5 | 4.8 | 351 | 2.77 | 100 | 5.5→5.9 | 16 | 3 reps: 161–284 · 274–351 | – | `concurrency/lmstudio-mlx_c2.json` |
+| lmstudio-mlx | 2 | 16/16 | 266 | – | 127 | 279 | 319 | 5.2 | 5.5 | 274 | 2.15 | 100 | 54.5→53.1 | 0 | 3 reps: 161–284 · 274–351 | – | `concurrency/lmstudio-mlx_c2_rep2.json` |
+| lmstudio-mlx | 2 | 16/16 | 268 | – | 127 | 284 | 321 | 4.8 | 5.5 | 278 | 2.19 | 100 | 43.2→43.6 | 5 | 3 reps: 161–284 · 274–351 | – | `concurrency/lmstudio-mlx_c2_rep3.json` |
+| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 416 | 437 | 4.8 | 5.6 | 496 | 3.90 | 100 | 5.4→5.3 | 6 | 3 reps: 416–594 · 352–496 | – | `concurrency/lmstudio-mlx_c4.json` |
+| lmstudio-mlx | 4 | 16/16 | 268 | – | 127 | 582 | 641 | 6.3 | 8.3 | 364 | 2.86 | 100 | 52.9→53.3 | 0 | 3 reps: 416–594 · 352–496 | – | `concurrency/lmstudio-mlx_c4_rep2.json` |
+| lmstudio-mlx | 4 | 16/16 | 266 | – | 127 | 594 | 679 | 6.7 | 8.1 | 352 | 2.77 | 100 | 43.0→40.1 | 5 | 3 reps: 416–594 · 352–496 | – | `concurrency/lmstudio-mlx_c4_rep3.json` |
+| lmstudio-mlx | 8 | 32/32 | 267 | – | 127 | 679 | 867 | 9.5 | 13.0 | 535 | 4.21 | 100 | 5.2→5.9 | 6 | 3 reps: 679–992 · 409–535 | – | `concurrency/lmstudio-mlx_c8.json` |
+| lmstudio-mlx | 8 | 32/32 | 268 | – | 127 | 972 | 1197 | 11.6 | 16.3 | 417 | 1.95 | 59 | 49.1→49.9 | 0 | 3 reps: 679–992 · 409–535 | – | `concurrency/lmstudio-mlx_c8_rep2.json` |
+| lmstudio-mlx | 8 | 32/32 | 268 | – | 127 | 992 | 1234 | 11.8 | 16.6 | 409 | 1.61 | 50 | 39.6→43.2 | 5 | 3 reps: 679–992 · 409–535 | – | `concurrency/lmstudio-mlx_c8_rep3.json` |
+| lmstudio-mlx | 16 | 64/64 | 268 | – | 127 | 2519 | 2756 | 9.9 | 12.5 | 528 | 0.52 | 12 | 5.9→5.8 | 15 | 3 reps: 2519–3245 · 430–528 | – | `concurrency/lmstudio-mlx_c16.json` |
+| lmstudio-mlx | 16 | 64/64 | 267 | – | 127 | 3171 | 3621 | 11.8 | 16.5 | 431 | 0.37 | 11 | 50.7→54.7 | 2 | 3 reps: 2519–3245 · 430–528 | – | `concurrency/lmstudio-mlx_c16_rep2.json` |
+| lmstudio-mlx | 16 | 64/64 | 265 | – | 127 | 3245 | 3664 | 11.4 | 16.1 | 430 | 0.32 | 9 | 42.4→39.7 | 4 | 3 reps: 2519–3245 · 430–528 | – | `concurrency/lmstudio-mlx_c16_rep3.json` |
+| lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32.json` |
+| lmstudio-mlx | 32 | 128/128 | 267 | – | 127 | 7572 | 8433 | 11.0 | 15.6 | 444 | 0.22 | 6 | 57.5→56.0 | 0 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32_rep2.json` |
+| lmstudio-mlx | 32 | 128/128 | 267 | – | 127 | 7474 | 8423 | 10.9 | 15.5 | 450 | 0.22 | 6 | 39.7→36.9 | 5 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32_rep3.json` |
 
 ## prefix
 
@@ -148,12 +172,24 @@ run shared the GPU with something else (usually a Blender render).
 | llamacpp | 8 | 320/320 | 268 | 9 | 128 | 23341 | 58685 | 17.4 | 27.1 | 405 | 0.08 | 2 | 3.2→2.8 | 6 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8.json` |
 | llamacpp | 8 | 320/320 | 269 | 10 | 128 | 24143 | 57771 | 19.3 | 23.1 | 406 | 0.19 | 6 | 4.6→12.2 | 0 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8_rep2.json` |
 | llamacpp | 8 | 320/320 | 266 | 7 | 128 | 15940 | 42115 | 15.5 | 20.2 | 480 | 0.21 | 6 | 4.9→5.3 | 5 | 3 reps: 15940–24143 · 405–480 | – | `rate/llamacpp_r8_rep3.json` |
-| lmstudio-gguf | 1 | 40/40 | 268 | – | 128 | 270 | 874 | 6.9 | 14.3 | 105 | 0.82 | 100 | 5.3→4.9 | 20 | – | – | `rate/lmstudio-gguf_r1.json` |
-| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 251 | 2301 | 14.9 | 24.6 | 225 | 1.43 | 81 | 4.7→5.2 | 4 | – | – | `rate/lmstudio-gguf_r2.json` |
-| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 1017 | 3540 | 21.7 | 32.5 | 303 | 1.17 | 49 | 5.3→5.8 | 4 | – | – | `rate/lmstudio-gguf_r3.json` |
-| lmstudio-gguf | 4 | 160/160 | 267 | – | 128 | 3674 | 13886 | 21.8 | 27.9 | 343 | 0.18 | 7 | 3.5→5.8 | 5 | – | – | `rate/lmstudio-gguf_r4.json` |
-| lmstudio-gguf | 6 | 240/240 | 269 | – | 128 | 22194 | 48884 | 21.0 | 29.3 | 328 | 0.10 | 4 | 6.6→8.1 | 5 | – | – | `rate/lmstudio-gguf_r6.json` |
-| lmstudio-gguf | 8 | 320/320 | 268 | – | 128 | 24150 | 66972 | 16.0 | 34.5 | 374 | 0.08 | 3 | 5.0→9.4 | 5 | – | – | `rate/lmstudio-gguf_r8.json` |
+| lmstudio-gguf | 1 | 40/40 | 268 | – | 128 | 270 | 874 | 6.9 | 14.3 | 105 | 0.82 | 100 | 5.3→4.9 | 20 | 3 reps: 103–270 · 105–106 | – | `rate/lmstudio-gguf_r1.json` |
+| lmstudio-gguf | 1 | 40/40 | 267 | – | 128 | 125 | 369 | 9.0 | 19.7 | 106 | 0.83 | 100 | 56.1→57.0 | 16 | 3 reps: 103–270 · 105–106 | – | `rate/lmstudio-gguf_r1_rep2.json` |
+| lmstudio-gguf | 1 | 40/40 | 267 | – | 128 | 103 | 235 | 7.8 | 11.2 | 106 | 0.83 | 100 | 47.4→46.0 | 20 | 3 reps: 103–270 · 105–106 | – | `rate/lmstudio-gguf_r1_rep3.json` |
+| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 251 | 2301 | 14.9 | 24.6 | 225 | 1.43 | 81 | 4.7→5.2 | 4 | 3 reps: 119–251 · 225–228 | – | `rate/lmstudio-gguf_r2.json` |
+| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 120 | 328 | 13.5 | 19.8 | 228 | 1.78 | 100 | 66.1→68.5 | 12 | 3 reps: 119–251 · 225–228 | – | `rate/lmstudio-gguf_r2_rep2.json` |
+| lmstudio-gguf | 2 | 80/80 | 268 | – | 128 | 119 | 248 | 12.3 | 17.2 | 228 | 1.78 | 100 | 43.6→48.5 | 0 | 3 reps: 119–251 · 225–228 | – | `rate/lmstudio-gguf_r2_rep3.json` |
+| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 1017 | 3540 | 21.7 | 32.5 | 303 | 1.17 | 49 | 5.3→5.8 | 4 | 3 reps: 118–1017 · 303–324 | – | `rate/lmstudio-gguf_r3.json` |
+| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 140 | 1356 | 17.7 | 20.4 | 318 | 2.30 | 92 | 66.7→74.7 | 17 | 3 reps: 118–1017 · 303–324 | – | `rate/lmstudio-gguf_r3_rep2.json` |
+| lmstudio-gguf | 3 | 120/120 | 268 | – | 128 | 118 | 896 | 15.3 | 18.3 | 324 | 2.51 | 99 | 48.7→53.9 | 0 | 3 reps: 118–1017 · 303–324 | – | `rate/lmstudio-gguf_r3_rep3.json` |
+| lmstudio-gguf | 4 | 160/160 | 267 | – | 128 | 3674 | 13886 | 21.8 | 27.9 | 343 | 0.18 | 7 | 3.5→5.8 | 5 | 3 reps: 1434–3674 · 343–403 | – | `rate/lmstudio-gguf_r4.json` |
+| lmstudio-gguf | 4 | 158/160 | 267 | – | 128 | 2763 | 6020 | 18.8 | 20.3 | 392 | 0.64 | 21 | 65.1→66.2 | 18 | 3 reps: 1434–3674 · 343–403 | – | `rate/lmstudio-gguf_r4_rep2.json` |
+| lmstudio-gguf | 4 | 160/160 | 268 | – | 128 | 1434 | 5256 | 18.1 | 19.7 | 403 | 1.18 | 38 | 52.8→60.1 | 0 | 3 reps: 1434–3674 · 343–403 | – | `rate/lmstudio-gguf_r4_rep3.json` |
+| lmstudio-gguf | 6 | 240/240 | 269 | – | 128 | 22194 | 48884 | 21.0 | 29.3 | 328 | 0.10 | 4 | 6.6→8.1 | 5 | 3 reps: 14653–22194 · 328–405 | – | `rate/lmstudio-gguf_r6.json` |
+| lmstudio-gguf | 6 | 240/240 | 267 | – | 128 | 16754 | 36316 | 18.4 | 22.5 | 384 | 0.10 | 3 | 64.2→70.2 | 1 | 3 reps: 14653–22194 · 328–405 | – | `rate/lmstudio-gguf_r6_rep2.json` |
+| lmstudio-gguf | 6 | 240/240 | 269 | – | 128 | 14653 | 32230 | 17.1 | 20.1 | 405 | 0.11 | 3 | 59.5→64.6 | 0 | 3 reps: 14653–22194 · 328–405 | – | `rate/lmstudio-gguf_r6_rep3.json` |
+| lmstudio-gguf | 8 | 320/320 | 268 | – | 128 | 24150 | 66972 | 16.0 | 34.5 | 374 | 0.08 | 3 | 5.0→9.4 | 5 | 3 reps: 24150–29968 · 374–408 | – | `rate/lmstudio-gguf_r8.json` |
+| lmstudio-gguf | 8 | 320/320 | 267 | – | 128 | 29968 | 61882 | 16.4 | 21.4 | 391 | 0.08 | 2 | 68.5→65.8 | 0 | 3 reps: 24150–29968 · 374–408 | – | `rate/lmstudio-gguf_r8_rep2.json` |
+| lmstudio-gguf | 8 | 320/320 | 268 | – | 128 | 27528 | 57781 | 15.8 | 20.1 | 408 | 0.08 | 2 | 63.6→61.1 | 0 | 3 reps: 24150–29968 · 374–408 | – | `rate/lmstudio-gguf_r8_rep3.json` |
 | mlx | 1 | 40/40 | 267 | 9 | 128 | 117 | 552 | 4.3 | 5.3 | 106 | 0.83 | 100 | 2.7→3.0 | 4 | 3 reps: 117–368 · 105–106 | – | `rate/mlx_r1.json` |
 | mlx | 1 | 40/40 | 265 | 7 | 128 | 368 | 799 | 10.6 | 20.6 | 105 | 0.82 | 100 | 3.9→4.3 | 12 | 3 reps: 117–368 · 105–106 | – | `rate/mlx_r1_rep2.json` |
 | mlx | 1 | 40/40 | 267 | 9 | 128 | 128 | 581 | 5.4 | 6.8 | 106 | 0.83 | 100 | 61.6→65.9 | 3 | 3 reps: 117–368 · 105–106 | – | `rate/mlx_r1_rep3.json` |
@@ -172,12 +208,24 @@ run shared the GPU with something else (usually a Blender render).
 | mlx | 8 | 320/320 | 269 | 9 | 128 | 16210 | 33378 | 15.5 | 17.6 | 541 | 0.13 | 3 | 3.2→4.8 | 4 | 3 reps: 16210–35998 · 377–541 | – | `rate/mlx_r8.json` |
 | mlx | 8 | 320/320 | 269 | 9 | 128 | 33089 | 65754 | 22.5 | 29.6 | 377 | 0.05 | 2 | 51.5→49.5 | 4 | 3 reps: 16210–35998 · 377–541 | – | `rate/mlx_r8_rep2.json` |
 | mlx | 8 | 320/320 | 268 | 8 | 128 | 35998 | 65949 | 21.8 | 33.4 | 378 | 0.06 | 2 | 58.4→53.1 | 6 | 3 reps: 16210–35998 · 377–541 | – | `rate/mlx_r8_rep3.json` |
-| lmstudio-mlx | 1 | 40/40 | 268 | – | 127 | 127 | 209 | 3.1 | 4.2 | 106 | 0.83 | 100 | 5.4→5.5 | 6 | – | – | `rate/lmstudio-mlx_r1.json` |
-| lmstudio-mlx | 2 | 80/80 | 267 | – | 127 | 139 | 664 | 4.6 | 16.4 | 229 | 1.80 | 100 | 5.3→6.1 | 6 | – | – | `rate/lmstudio-mlx_r2.json` |
-| lmstudio-mlx | 3 | 120/120 | 267 | – | 127 | 925 | 2704 | 19.9 | 21.9 | 313 | 1.33 | 54 | 5.9→5.4 | 6 | – | – | `rate/lmstudio-mlx_r3.json` |
-| lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 5619 | 11940 | 19.1 | 22.8 | 355 | 0.24 | 9 | 5.3→5.4 | 6 | – | – | `rate/lmstudio-mlx_r4.json` |
-| lmstudio-mlx | 6 | 240/240 | 269 | – | 127 | 17666 | 39218 | 17.8 | 20.8 | 369 | 0.11 | 4 | 5.6→8.3 | 0 | – | – | `rate/lmstudio-mlx_r6.json` |
-| lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | – | – | `rate/lmstudio-mlx_r8.json` |
+| lmstudio-mlx | 1 | 40/40 | 268 | – | 127 | 127 | 209 | 3.1 | 4.2 | 106 | 0.83 | 100 | 5.4→5.5 | 6 | 3 reps: 127–147 · 106–106 | – | `rate/lmstudio-mlx_r1.json` |
+| lmstudio-mlx | 1 | 40/40 | 267 | – | 127 | 147 | 304 | 4.4 | 8.0 | 106 | 0.83 | 100 | 55.3→45.2 | 0 | 3 reps: 127–147 · 106–106 | – | `rate/lmstudio-mlx_r1_rep2.json` |
+| lmstudio-mlx | 1 | 40/40 | 267 | – | 127 | 127 | 241 | 3.6 | 4.9 | 106 | 0.83 | 100 | 36.5→36.8 | 4 | 3 reps: 127–147 · 106–106 | – | `rate/lmstudio-mlx_r1_rep3.json` |
+| lmstudio-mlx | 2 | 80/80 | 267 | – | 127 | 139 | 664 | 4.6 | 16.4 | 229 | 1.80 | 100 | 5.3→6.1 | 6 | 3 reps: 139–155 · 229–229 | – | `rate/lmstudio-mlx_r2.json` |
+| lmstudio-mlx | 2 | 80/80 | 268 | – | 127 | 144 | 399 | 5.1 | 14.8 | 229 | 1.80 | 100 | 43.7→46.2 | 3 | 3 reps: 139–155 · 229–229 | – | `rate/lmstudio-mlx_r2_rep2.json` |
+| lmstudio-mlx | 2 | 80/80 | 266 | – | 127 | 155 | 395 | 5.3 | 13.4 | 229 | 1.80 | 100 | 36.8→36.8 | 4 | 3 reps: 139–155 · 229–229 | – | `rate/lmstudio-mlx_r2_rep3.json` |
+| lmstudio-mlx | 3 | 120/120 | 267 | – | 127 | 925 | 2704 | 19.9 | 21.9 | 313 | 1.33 | 54 | 5.9→5.4 | 6 | 3 reps: 176–925 · 313–326 | – | `rate/lmstudio-mlx_r3.json` |
+| lmstudio-mlx | 3 | 120/120 | 267 | – | 127 | 176 | 809 | 7.3 | 15.5 | 326 | 2.56 | 100 | 32.5→38.6 | 19 | 3 reps: 176–925 · 313–326 | – | `rate/lmstudio-mlx_r3_rep2.json` |
+| lmstudio-mlx | 3 | 120/120 | 266 | – | 127 | 229 | 862 | 9.1 | 15.9 | 325 | 2.56 | 100 | 35.6→36.7 | 4 | 3 reps: 176–925 · 313–326 | – | `rate/lmstudio-mlx_r3_rep3.json` |
+| lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 5619 | 11940 | 19.1 | 22.8 | 355 | 0.24 | 9 | 5.3→5.4 | 6 | 3 reps: 980–5619 · 355–424 | – | `rate/lmstudio-mlx_r4.json` |
+| lmstudio-mlx | 4 | 160/160 | 267 | – | 127 | 1271 | 3367 | 15.6 | 17.9 | 424 | 1.25 | 38 | 38.4→37.3 | 4 | 3 reps: 980–5619 · 355–424 | – | `rate/lmstudio-mlx_r4_rep2.json` |
+| lmstudio-mlx | 4 | 160/160 | 266 | – | 127 | 980 | 3313 | 15.2 | 17.5 | 424 | 1.75 | 52 | 38.4→36.3 | 4 | 3 reps: 980–5619 · 355–424 | – | `rate/lmstudio-mlx_r4_rep3.json` |
+| lmstudio-mlx | 6 | 240/240 | 269 | – | 127 | 17666 | 39218 | 17.8 | 20.8 | 369 | 0.11 | 4 | 5.6→8.3 | 0 | 3 reps: 10697–17666 · 369–451 | – | `rate/lmstudio-mlx_r6.json` |
+| lmstudio-mlx | 6 | 240/240 | 268 | – | 127 | 10697 | 24479 | 14.6 | 17.0 | 451 | 0.22 | 6 | 38.6→37.8 | 4 | 3 reps: 10697–17666 · 369–451 | – | `rate/lmstudio-mlx_r6_rep2.json` |
+| lmstudio-mlx | 6 | 240/240 | 267 | – | 127 | 10912 | 24781 | 14.1 | 17.4 | 449 | 0.13 | 4 | 35.3→37.9 | 4 | 3 reps: 10697–17666 · 369–451 | – | `rate/lmstudio-mlx_r6_rep3.json` |
+| lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8.json` |
+| lmstudio-mlx | 8 | 320/320 | 268 | – | 127 | 23057 | 49718 | 13.3 | 17.5 | 443 | 0.10 | 3 | 38.2→40.6 | 5 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8_rep2.json` |
+| lmstudio-mlx | 8 | 320/320 | 269 | – | 127 | 22198 | 47602 | 12.7 | 16.9 | 453 | 0.10 | 3 | 38.7→32.9 | 5 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8_rep3.json` |
 
 ## stalls
 

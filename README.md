@@ -74,11 +74,11 @@ and 128 output tokens.
 **Caveat on conditions.** The mac was shared with other work, often a Blender render on the GPU.
 Each run waited for a quiet moment, but the render sometimes started mid-run. 10 of the 96 result files
 began with other apps using more than 15% of the GPU (the `GPU % before` column in
-`SUMMARY.md`). Treat differences under ~15% between servers as noise. On Nov 4 I repeated
-llama.cpp's concurrency and rate points twice and `mlx_lm.server`'s once. Where a point has repeats, the plots draw the median
-and a min–max band. The other servers are still single runs (see "Repeats" below).
+`SUMMARY.md`). Treat differences under ~15% between servers as noise. On Nov 4–5 I repeated
+every server's concurrency and rate points twice. Where a point has repeats, the plots draw the median
+and a min–max band. The other experiments are still single runs (see "Repeats" below).
 
-### Repeats (Nov 4)
+### Repeats (Nov 4–5)
 
 Two more passes of the concurrency and rate points (`results/*/llamacpp_*_rep2.json`, `_rep3.json`).
 Each run started with other apps under 20% GPU and load under 8. A minute-by-minute log of the day
@@ -99,7 +99,7 @@ below use.
   3 req/s, which is what the stall analysis below explains.
 - **Does not hold:** llama.cpp's goodput at 3–4 req/s. Nov 1 gave 1.21 and 0.50 req/s, Nov 4
   gave 2.31–3.40. The `mlx_lm.server` numbers in the rate table (2.56 and 3.00) fall inside that range, so
-  "1.7× the best of the others" is a single-run result until the other servers are repeated.
+  "1.7× the best of the others" was a single-run result, and the LM Studio repeats below end it.
 - rep3 at 16 and 32 users dropped to ~300 tok/s with TPOT 16.5 ms. The gate only checks before a
   run. While it waited between runs, it read 0–60% GPU use from other apps
   (`results/machine/gate-2026-11-04-llamacpp.log`). I count those two as interference, and they set
@@ -128,8 +128,28 @@ Nov 1 one-user run started with 22% GPU from other apps, which may explain its l
 rep3 was slower at every point: 135 tok/s for one user instead of 176–221, and 16.4 ms TPOT at 3 req/s
 instead of 6.4–7.0. Other apps kept the CPU busy (load 57–83 on 16 cores) while the GPU stayed under the
 gate, so I read rep3 as what this server does on a CPU-loaded machine, not as noise. That makes the band
-at those points wider than the run-to-run spread on a quiet machine. LM Studio's two engines have no
-repeats yet.
+at those points wider than the run-to-run spread on a quiet machine.
+
+LM Studio's two engines got two passes each on Nov 5, 00:19–01:34 (`results/*/lmstudio-*_rep2.json`,
+`_rep3.json`), with the GPU gate only. Load was 44–69 before the GGUF runs and 32–57 before the MLX runs:
+
+| point | GGUF Nov 1 | GGUF rep2 | GGUF rep3 | MLX Nov 1 | MLX rep2 | MLX rep3 |
+|---|---|---|---|---|---|---|
+| 1 user: tok/s | 181 | 143 | 126 | 250 | 177 | 181 |
+| 8 users: tok/s | 532 | 415 | 427 | 535 | 417 | 409 |
+| 3 req/s: goodput / TPOT ms | 1.17 / 21.7 | 2.30 / 17.7 | 2.51 / 15.3 | 1.33 / 19.9 | 2.56 / 7.3 | 2.56 / 9.1 |
+| 4 req/s: goodput | 0.18 | 0.64 | 1.18 | 0.24 | 1.25 | 1.75 |
+
+- Closed-loop throughput fell by 20–30% on the CPU-loaded machine, on both engines, as it did for
+  `mlx_lm.server`.
+- Goodput at 3–4 req/s went the other way: both LM Studio engines roughly doubled their Nov 1 numbers,
+  as llama.cpp did on Nov 4. At 3 req/s every server's repeats land at 2.1–2.6 req/s
+  (llama.cpp 2.31–2.38, `mlx_lm.server` 2.14–2.56, LM Studio GGUF 2.30–2.51, LM Studio MLX 2.56).
+  So the first rate pass is the outlier for three of the four servers, and I can't rank the servers
+  at 3 req/s. I don't know what was different then. Those first-pass runs at 3 and 4 req/s
+  started with load 3.5–5.9 and 4–15% GPU from other apps (LM Studio MLX's ran on Nov 2).
+- LM Studio MLX's TPOT at 3 req/s was 7–9 ms in both repeats, not ~20 ms. The stall analysis below
+  uses the Nov 1 runs only, so its LM Studio MLX row rests on one run.
 
 ### Concurrency (closed loop)
 
@@ -166,8 +186,8 @@ repeats yet.
 | 6 | 0.12 / 21725 | 0.10 / 48884 | 0.26 / 18274 | 0.11 / 39218 |
 
 - Goodput peaks at 1.4–1.8 req/s for three servers. `mlx_lm.server` keeps going to
-  3.0 req/s, about 1.7× the best of the others. That gap did not survive the repeats: on Nov 4
-  llama.cpp reached 2.3–3.4 req/s at 3–4 req/s offered, and `mlx_lm.server` 2.5–2.6 (see "Repeats").
+  3.0 req/s, about 1.7× the best of the others. That gap did not survive the repeats: on Nov 4–5
+  every server reached 2.1–2.6 req/s at 3 req/s offered (see "Repeats").
 - Under open-loop load, TPOT on three servers climbs to ~20 ms at 3 req/s (llama.cpp,
   LM Studio GGUF and LM Studio MLX), while `mlx_lm.server` stays at 7 ms (`rate/*_r3.json`).
   In the closed-loop run with 8 users, llama.cpp held 8.5 ms. The next section explains why.
@@ -269,8 +289,10 @@ LM Studio does not report `cached_tokens`.
 
 ## Limitations
 
-- One machine, shared with other work. Three passes for llama.cpp's concurrency and rate points,
-  two for `mlx_lm.server`'s, one for everything else; a min–max band over three runs, not a confidence interval.
+- One machine, shared with other work. Three passes of every server's concurrency and rate points,
+  one for everything else; a min–max band over three runs, not a confidence interval. The Nov 4–5
+  night passes of `mlx_lm.server` and LM Studio ran with load 32–83 (GPU under 20%), so their bands
+  mix machine states.
   Before that, the only repeat was lmstudio-mlx at 16 and 32 users on two different days, which
   agreed within 2%.
 - One model size (1.7B). Its 4-bit quantizations differ slightly between GGUF and MLX
