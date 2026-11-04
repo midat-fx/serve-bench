@@ -81,6 +81,15 @@ def stall_stats(run: dict) -> dict | None:
     }
 
 
+def labels(by_server: dict) -> list:
+    """Known servers in fixed order, then variants such as llamacpp-cache-ram0."""
+    return [s for s in SERVERS if s in by_server] + sorted(set(by_server) - set(SERVERS))
+
+
+def color(label: str) -> str:
+    return COLORS.get(label, "#555555")
+
+
 def grouped(runs: list) -> list:
     """[(x, [run, ...])] in x order: repeats of one point share x."""
     out = {}
@@ -111,10 +120,10 @@ def table(data: dict) -> str:
              "run shared the GPU with something else (usually a Blender render).", ""]
     head = ("| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 "
             "| TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before "
-            "| spread: TTFT p50 · tok/s | file |")
+            "| spread: TTFT p50 · tok/s | server prompt ms | file |")
     for exp, by_server in sorted(data.items()):
         lines += [f"## {exp}", "", head, "|" + "---|" * (head.count("|") - 1)]
-        for server in [s for s in SERVERS if s in by_server]:
+        for server in labels(by_server):
             for x, runs in grouped(by_server[server]):
                 for run in runs:
                     s = run["summary"]
@@ -125,13 +134,15 @@ def table(data: dict) -> str:
                         lines.append(f"| {server} | {x:g} | 0/{s['n']} | failed: {s['errors']} |")
                         continue
                     pt, ct = s["mean_prompt_tokens"], s.get("mean_cached_tokens")
+                    sp = s.get("mean_server_prompt_ms")
                     lines.append(
                         f"| {server} | {x if isinstance(x, str) else f'{x:g}'} | {s['n_ok']}/{s['n']} "
                         f"| {pt:.0f} | {'–' if ct is None else f'{ct:.0f}'} | {s['mean_output_tokens']:.0f} "
                         f"| {ms(s['ttft_s']['p50'])} | {ms(s['ttft_s']['p99'])} | {ms(s['tpot_s']['p50'])} "
                         f"| {ms(s['tpot_s']['p99'])} | {s['output_tok_per_s']:.0f} "
                         f"| {s['goodput_req_per_s']:.2f} | {100 * s['slo_attainment']:.0f} "
-                        f"| {lb:.1f}→{la:.1f} | {'–' if gpu is None else f'{gpu:.0f}'} | {spread(runs)} | `{f}` |")
+                        f"| {lb:.1f}→{la:.1f} | {'–' if gpu is None else f'{gpu:.0f}'} | {spread(runs)} "
+                        f"| {'–' if sp is None else ms(sp / 1e3)} | `{f}` |")
         lines.append("")
     lines += stall_table(data)
     return "\n".join(lines)
@@ -172,20 +183,20 @@ def stall_table(data: dict) -> list[str]:
 
 def _lines(ax, by_server, metric, title, ylabel, logx=False, p99=False):
     """Median over repeats; a band from min to max where a point has more than one run."""
-    for server in [s for s in SERVERS if s in by_server]:
+    for server in labels(by_server):
         pts = [(x, [r["summary"] for r in rs if r["summary"]["n_ok"]])
                for x, rs in grouped(by_server[server])]
         pts = [(x, ss) for x, ss in pts if ss]
         xs = [x for x, _ in pts]
         p50 = [[metric(s, "p50") for s in ss] for _, ss in pts]
-        ax.plot(xs, [statistics.median(v) for v in p50], "o-", color=COLORS[server],
+        ax.plot(xs, [statistics.median(v) for v in p50], "o-", color=color(server),
                 label=server + (" p50" if p99 else ""))
         if any(len(v) > 1 for v in p50):
             ax.fill_between(xs, [min(v) for v in p50], [max(v) for v in p50],
-                            color=COLORS[server], alpha=0.2, lw=0)
+                            color=color(server), alpha=0.2, lw=0)
         if p99:
             ax.plot(xs, [statistics.median(metric(s, "p99") for s in ss) for _, ss in pts], "x--",
-                    color=COLORS[server], alpha=0.7, label=server + " p99")
+                    color=color(server), alpha=0.7, label=server + " p99")
     if logx:
         ax.set_xscale("log", base=2)
         ax.set_xticks(xs, [f"{x:g}" for x in xs])
@@ -223,7 +234,7 @@ def plots(data: dict, out: pathlib.Path):
 
     if d := data.get("arrivals"):
         fig, ax = plt.subplots(figsize=(8, 4.5))
-        servers = [s for s in SERVERS if s in d]
+        servers = labels(d)
         patterns = [x for x, _ in grouped(d[servers[0]])]
         w = 0.8 / len(servers)
         for i, server in enumerate(servers):
@@ -233,11 +244,11 @@ def plots(data: dict, out: pathlib.Path):
             def ttft(p, q):
                 return [r["summary"]["ttft_s"][q] * 1e3 for r in runs[p]]
             ax.bar(pos, [statistics.median(ttft(p, "p99")) for p in patterns], w,
-                   color=COLORS[server], alpha=0.45)
+                   color=color(server), alpha=0.45)
             mid = [statistics.median(ttft(p, "p50")) for p in patterns]
             err = [[m - min(ttft(p, "p50")) for m, p in zip(mid, patterns)],
                    [max(ttft(p, "p50")) - m for m, p in zip(mid, patterns)]]
-            ax.bar(pos, mid, w, color=COLORS[server], label=server,
+            ax.bar(pos, mid, w, color=color(server), label=server,
                    yerr=err if any(len(runs[p]) > 1 for p in patterns) else None, capsize=2)
         ax.set_xticks([j + w * (len(servers) - 1) / 2 for j in range(len(patterns))], patterns)
         ax.set_ylabel("TTFT ms (solid p50, pale p99)")
@@ -271,7 +282,7 @@ def plots(data: dict, out: pathlib.Path):
             for name, server, r in runs:
                 itl = sorted(stall_stats(r)["itl"])
                 ax[0].step([v * 1e3 for v in itl], [(i + 1) / len(itl) for i in range(len(itl))],
-                           style, color=COLORS[server], label=name)
+                           style, color=color(server), label=name)
         ax[0].axvline(SPIKE_S * 1e3, color="grey", lw=0.8)
         ax[0].set_xscale("log")
         ax[0].set_title("Token gaps: 3 req/s (solid), 8 users (dotted)")
@@ -281,7 +292,7 @@ def plots(data: dict, out: pathlib.Path):
         names = [n for n, _, _ in r3 + c8]
         st = [stall_stats(r) for _, _, r in r3 + c8]
         normal = [s["normal_per_gap"] * 1e3 for s in st]
-        ax[1].bar(names, normal, color=[COLORS[sv] for _, sv, _ in r3 + c8], label="gaps ≤ 30 ms")
+        ax[1].bar(names, normal, color=[color(sv) for _, sv, _ in r3 + c8], label="gaps ≤ 30 ms")
         ax[1].bar(names, [s["stall_per_gap"] * 1e3 for s in st], bottom=normal, color="#444444",
                   label="gaps > 30 ms")
         ax[1].tick_params(axis="x", rotation=40, labelsize=7)
@@ -290,7 +301,7 @@ def plots(data: dict, out: pathlib.Path):
         ax[1].legend(fontsize=7)
         for name, server, r in r3:
             ax[2].hist([v * 1e3 for v in stall_stats(r)["lags"]], bins=range(-20, 201, 10),
-                       histtype="step", color=COLORS[server], label=name)
+                       histtype="step", color=color(server), label=name)
         ax[2].set_title("First tokens by time since the latest stall ended, 3 req/s")
         ax[2].set_xlabel("ms")
         ax[2].set_ylabel("requests")

@@ -4,6 +4,8 @@
 #   scripts/bench.sh fake ceiling
 #   ONLY="r8" scripts/bench.sh lmstudio-mlx rate   # re-run single points
 #   REPS="2 3" scripts/bench.sh llamacpp concurrency  # repeats: <server>_<x>_rep<N>.json
+#   LLAMA_ARGS="--cache-ram 0" VARIANT=cache-ram0 scripts/bench.sh llamacpp prefix
+#     # llama-server flags; results labelled llamacpp-cache-ram0, next to the default runs
 # Experiments: concurrency rate arrivals prompt prefix (default: all).
 # Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
 # GPU use is below MAX_GPU.
@@ -23,12 +25,14 @@ RESULTS=${RESULTS:-results}  # point dry runs on a busy machine elsewhere
 REPS=${REPS:-1}  # repeat numbers; rep 1 keeps the plain file name
 
 server=$1; shift
+label=$server${VARIANT:+-$VARIANT}
 exps=${*:-concurrency rate arrivals prompt prefix}
 
 case $server in
 llamacpp)
   URL=http://127.0.0.1:8081 MODEL=qwen3-1.7b EOS=--ignore-eos
-  start() { llama-server -m "$GGUF" --port 8081 -np $SLOTS -c $CTX --log-disable >$LOGS/$server.log 2>&1 & }
+  start() { llama-server -m "$GGUF" --port 8081 -np $SLOTS -c $CTX --log-disable ${LLAMA_ARGS:-} \
+              >$LOGS/$server.log 2>&1 & }
   stop() { pkill -f "llama-server -m $GGUF --port 8081" || true; }
   version() { llama-server --version 2>&1 | grep version; } ;;
 mlx)
@@ -78,9 +82,9 @@ bench() {  # bench <experiment> <name> [servebench run args...]
   [[ -z "${ONLY:-}" || " $ONLY " == *" $name "* ]] || return 0  # ONLY="r8 c4": re-run single points
   local suffix=; [ $REP = 1 ] || suffix=_rep$REP
   wait_calm
-  uv run servebench run --url $URL --model $MODEL --label $server $EOS \
-    --out $RESULTS/$exp/${server}_$name$suffix.json --tag experiment=$exp --tag "engine=$VERSION" \
-    --tag rep=$REP "$@"
+  uv run servebench run --url $URL --model $MODEL --label $label $EOS \
+    --out $RESULTS/$exp/${label}_$name$suffix.json --tag experiment=$exp --tag "engine=$VERSION" \
+    --tag rep=$REP --tag "llama_args=${LLAMA_ARGS:-}" "$@"
   sleep 5
 }
 
@@ -88,7 +92,7 @@ trap stop EXIT
 stop; start
 for _ in $(seq 120); do curl -sf $URL/v1/models >/dev/null && break; sleep 1; done
 VERSION=$(version)
-echo "$server: $VERSION"
+echo "$label: $VERSION ${LLAMA_ARGS:-}"
 
 # Repeats run as whole passes, so the spread includes drift over time, not only run-to-run noise.
 for REP in $REPS; do

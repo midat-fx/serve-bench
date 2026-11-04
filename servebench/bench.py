@@ -59,6 +59,9 @@ def arrivals(pattern: str, n: int, rate: float, burst: int = 1, seed: int = 0) -
     raise ValueError(f"unknown pattern {pattern!r}")
 
 
+TIMING_KEYS = ("cache_n", "prompt_n", "prompt_ms", "predicted_n", "predicted_ms")
+
+
 async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0: float):
     clock = time.perf_counter
     req.t_send = clock() - t0
@@ -80,6 +83,8 @@ async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0
                     req.prompt_tokens = usage.get("prompt_tokens")
                     req.cached_tokens = (usage.get("prompt_tokens_details") or {}).get("cached_tokens")
                     usage_out = usage.get("completion_tokens")
+                if t := obj.get("timings"):  # llama-server only
+                    req.server_timings = {k: t[k] for k in TIMING_KEYS if k in t}
                 for ch in obj.get("choices") or []:
                     if ch.get("text"):
                         req.chunk_times.append(clock() - t0)

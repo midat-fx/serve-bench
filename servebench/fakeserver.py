@@ -42,9 +42,12 @@ async def serve(host: str, port: int, slots: int, prefill_s_per_token: float, de
                     await writer.drain()
                     writes.append(time.perf_counter())
             gaps = [b - a for a, b in zip(writes, writes[1:])]
-            timings.append({"ttft_s": writes[0] - t0, "gaps_s": gaps})
+            mine = {"ttft_s": writes[0] - t0, "gaps_s": gaps}
+            timings.append(mine)
             usage = {"prompt_tokens": n_prompt, "completion_tokens": n_out}
-            writer.write(f"data: {json.dumps({'choices': [], 'usage': usage})}\n\n".encode())
+            # like llama-server's final chunk
+            srv = {"prompt_n": n_prompt, "prompt_ms": 1e3 * mine["ttft_s"]}
+            writer.write(f"data: {json.dumps({'choices': [], 'usage': usage, 'timings': srv})}\n\n".encode())
             writer.write(b"data: [DONE]\n\n")
             await writer.drain()
         except (asyncio.IncompleteReadError, ConnectionError):

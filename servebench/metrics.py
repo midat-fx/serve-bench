@@ -20,6 +20,8 @@ class Request:
     chunk_times: list[float] = field(default_factory=list)  # since run start
     t_end: float | None = None
     error: str | None = None
+    # llama-server's own timings from its final chunk: cache_n, prompt_n, prompt_ms, predicted_ms
+    server_timings: dict | None = None
 
     @property
     def ok(self) -> bool:
@@ -77,6 +79,8 @@ def summarize(reqs: list[Request], slo_ttft: float, slo_tpot: float) -> dict:
     out_tokens = sum(r.output_tokens for r in ok)
     prompt = [r.prompt_tokens for r in ok if r.prompt_tokens is not None]
     cached = [r.cached_tokens for r in ok if r.cached_tokens is not None]
+    prompt_ms = [r.server_timings["prompt_ms"] for r in ok
+                 if r.server_timings and "prompt_ms" in r.server_timings]
     return {
         "n": len(reqs),
         "n_ok": len(ok),
@@ -87,6 +91,7 @@ def summarize(reqs: list[Request], slo_ttft: float, slo_tpot: float) -> dict:
         "mean_prompt_tokens": sum(prompt) / len(prompt) if prompt else None,
         "mean_cached_tokens": sum(cached) / len(cached) if cached else None,
         "mean_output_tokens": out_tokens / len(ok),
+        "mean_server_prompt_ms": sum(prompt_ms) / len(prompt_ms) if prompt_ms else None,
         "ttft_s": _dist([r.ttft for r in ok]),
         "tpot_s": _dist(tpots),
         "itl_s": _dist([x for r in ok for x in r.itls]),

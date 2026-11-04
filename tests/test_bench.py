@@ -102,6 +102,10 @@ def test_end_to_end_measures_known_latencies():
     assert 0 < s["ttft_s"]["p50"] - server_ttft < 0.010
     assert s["tpot_s"]["p50"] == pytest.approx(server_tpot, rel=0.03)  # n vs n-1 gaps is 5%
     assert res["state_before"]["loadavg"] and res["machine"]["cpu"]
+    # The server's own prompt timing from the final chunk lands in each request and the summary.
+    assert res["requests"][0]["server_timings"]["prompt_n"] == 101
+    assert s["mean_server_prompt_ms"] == pytest.approx(
+        1e3 * statistics.mean(t["ttft_s"] for t in server))
 
 
 def test_queueing_shows_up_in_ttft_not_tpot():
