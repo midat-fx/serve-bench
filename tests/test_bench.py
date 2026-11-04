@@ -93,12 +93,14 @@ def test_end_to_end_measures_known_latencies():
     assert s["mean_output_tokens"] == 21
     server = timings[1:]  # the first request is the warmup
     server_ttft = statistics.median(t["ttft_s"] for t in server)
-    server_gap = statistics.mean(g for t in server for g in t["gaps_s"])
+    # Per request, like TPOT, then the median: a pooled mean would let a few slow gaps on a
+    # busy runner pull it away from the client's p50.
+    server_tpot = statistics.median(statistics.mean(t["gaps_s"]) for t in server)
     assert server_ttft >= 0.0505 * 0.95  # the sleeps did run
     # The client sees a token after the server wrote it, plus connect and loopback time (~2 ms
     # locally). Under one decode step, so timing the second token instead would fail.
     assert 0 < s["ttft_s"]["p50"] - server_ttft < 0.010
-    assert s["tpot_s"]["p50"] == pytest.approx(server_gap, rel=0.03)  # n vs n-1 gaps is 5%
+    assert s["tpot_s"]["p50"] == pytest.approx(server_tpot, rel=0.03)  # n vs n-1 gaps is 5%
     assert res["state_before"]["loadavg"] and res["machine"]["cpu"]
 
 
