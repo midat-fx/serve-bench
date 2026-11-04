@@ -157,7 +157,16 @@ def test_report_builds_table_and_plots(tmp_path):
                 d = tmp_path / "results" / exp
                 d.mkdir(parents=True, exist_ok=True)
                 (d / f"{server}_{x}.json").write_text(json.dumps(res))
+    # Two identical repeats of one point: a band of zero width, and the spread column says so.
+    one = json.loads((tmp_path / "results" / "concurrency" / "mlx_2.json").read_text())
+    one["config"]["tags"]["rep"] = "2"
+    (tmp_path / "results" / "concurrency" / "mlx_2_rep2.json").write_text(json.dumps(one))
     pngs = report(tmp_path / "results", tmp_path / "img")
     assert sorted(pngs) == ["arrivals.png", "concurrency.png", "prefix.png", "prompt.png", "rate.png"]
     summary = (tmp_path / "results" / "SUMMARY.md").read_text()
     assert summary.count("| llamacpp |") == 10 and "`arrivals/mlx_burst.json`" in summary
+    from servebench.report import ms
+    row = next(line for line in summary.splitlines() if "`concurrency/mlx_2_rep2.json`" in line)
+    t, v = one["summary"]["ttft_s"]["p50"], one["summary"]["output_tok_per_s"]
+    assert f"2 reps: {ms(t)}–{ms(t)} · {v:.0f}–{v:.0f}" in row
+    assert summary.count("2 reps:") == 2 and summary.count("| mlx |") == 11

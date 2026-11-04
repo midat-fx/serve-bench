@@ -3,6 +3,7 @@
 #   scripts/bench.sh <llamacpp|mlx|lmstudio-gguf|lmstudio-mlx> [experiment ...]
 #   scripts/bench.sh fake ceiling
 #   ONLY="r8" scripts/bench.sh lmstudio-mlx rate   # re-run single points
+#   REPS="2 3" scripts/bench.sh llamacpp concurrency  # repeats: <server>_<x>_rep<N>.json
 # Experiments: concurrency rate arrivals prompt prefix (default: all).
 # Every run waits until the 1-minute load average is below MAX_LOAD and other apps'
 # GPU use is below MAX_GPU.
@@ -19,6 +20,7 @@ MAX_LOAD=${MAX_LOAD:-6}
 MAX_GPU=${MAX_GPU:-20}  # % busy from other apps (load average does not see GPU work)
 LOGS=.logs; mkdir -p $LOGS
 RESULTS=${RESULTS:-results}  # point dry runs on a busy machine elsewhere
+REPS=${REPS:-1}  # repeat numbers; rep 1 keeps the plain file name
 
 server=$1; shift
 exps=${*:-concurrency rate arrivals prompt prefix}
@@ -74,9 +76,11 @@ wait_calm() {  # our server is idle here, so GPU use is someone else's
 bench() {  # bench <experiment> <name> [servebench run args...]
   local exp=$1 name=$2; shift 2
   [[ -z "${ONLY:-}" || " $ONLY " == *" $name "* ]] || return 0  # ONLY="r8 c4": re-run single points
+  local suffix=; [ $REP = 1 ] || suffix=_rep$REP
   wait_calm
   uv run servebench run --url $URL --model $MODEL --label $server $EOS \
-    --out $RESULTS/$exp/${server}_$name.json --tag experiment=$exp --tag "engine=$VERSION" "$@"
+    --out $RESULTS/$exp/${server}_$name$suffix.json --tag experiment=$exp --tag "engine=$VERSION" \
+    --tag rep=$REP "$@"
   sleep 5
 }
 
@@ -86,6 +90,8 @@ for _ in $(seq 120); do curl -sf $URL/v1/models >/dev/null && break; sleep 1; do
 VERSION=$(version)
 echo "$server: $VERSION"
 
+# Repeats run as whole passes, so the spread includes drift over time, not only run-to-run noise.
+for REP in $REPS; do
 for exp in $exps; do case $exp in
 concurrency)  # closed loop, default 256-word (~268-token) prompts, 128 output tokens
   for c in 1 2 4 8 16 32; do
@@ -114,3 +120,4 @@ ceiling)  # run with the fake server: how fast can the client ingest tokens?
   done ;;
 *) echo "unknown experiment $exp" >&2; exit 2 ;;
 esac; done
+done

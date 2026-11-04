@@ -60,7 +60,8 @@ make bench       # every server and experiment, then results/SUMMARY.md and docs
 ```
 
 `scripts/bench.sh <server> [experiment ...]` runs one server, and `ONLY="r8 c4"` limits it to
-single points. Before each run it waits until
+single points. `REPS="2 3"` adds repeats as `<server>_<x>_rep<N>.json`; the report then plots the
+median with a min–max band and lists the spread in `SUMMARY.md`. Before each run it waits until
 the 1-minute load average is below 6 and other apps use less than 20% of the GPU.
 
 ## Results
@@ -74,7 +75,8 @@ and 128 output tokens.
 Each run waited for a quiet moment, but the render sometimes started mid-run. 10 of the 96 result files
 began with other apps using more than 15% of the GPU (the `GPU % before` column in
 `SUMMARY.md`). Treat differences under ~15% between servers as noise. Every run is a single
-pass, with no repeats.
+pass. The repeat harness exists since Nov 4, but I have not re-measured yet: that day other apps
+kept the GPU busy well above the 20% gate (`results/machine/samples-2026-11-04.tsv`).
 
 ### Concurrency (closed loop)
 
@@ -213,7 +215,7 @@ LM Studio does not report `cached_tokens`.
 
 ## Limitations
 
-- One machine, shared with other work. Single pass per point, no confidence intervals.
+- One machine, shared with other work. Single pass per point so far, no confidence intervals.
   The only repeat so far, lmstudio-mlx at 16 and 32 users on two different days,
   agreed within 2%.
 - One model size (1.7B). Its 4-bit quantizations differ slightly between GGUF and MLX
