@@ -31,6 +31,19 @@ run shared the GPU with something else (usually a Blender render).
 | fake | 32 | 64/64 | 257 | – | 512 | 10.6 | 13.4 | 1.1 | 1.1 | 27499 | 53.71 | 100 | 3.3→3.3 | 6 | – | – | `ceiling/fake_c32.json` |
 | fake | 64 | 128/128 | 257 | – | 512 | 20.0 | 25.8 | 1.1 | 1.1 | 56634 | 110.61 | 100 | 5.1→5.1 | 8 | – | – | `ceiling/fake_c64.json` |
 
+## chat
+
+| server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| llamacpp | 1 | 16/16 | 356 | 8 | 123 | 77.8 | 295 | 4.5 | 4.6 | 185 | 1.51 | 100 | 49.2→43.8 | 0 | – | 107 | `chat/llamacpp_c1.json` |
+| llamacpp | 8 | 32/32 | 329 | 11 | 102 | 147 | 750 | 15.0 | 23.6 | 441 | 4.33 | 100 | 43.0→40.4 | 0 | – | 215 | `chat/llamacpp_c8.json` |
+| lmstudio-gguf | 1 | 16/16 | 356 | – | 102 | 108 | 263 | 5.7 | 6.6 | 139 | 1.36 | 100 | 37.0→38.5 | 0 | – | – | `chat/lmstudio-gguf_c1.json` |
+| lmstudio-gguf | 8 | 32/32 | 329 | – | 79 | 243 | 721 | 18.6 | 24.2 | 324 | 4.12 | 100 | 37.2→39.1 | 10 | – | – | `chat/lmstudio-gguf_c8.json` |
+| mlx | 1 | 16/16 | 356 | 12 | 93 | 89.1 | 205 | 4.4 | 4.7 | 178 | 1.92 | 100 | 38.6→38.0 | 0 | – | – | `chat/mlx_c1.json` |
+| mlx | 8 | 32/32 | 328 | 12 | 84 | 705 | 1588 | 13.7 | 20.3 | 308 | 2.39 | 66 | 36.4→36.2 | 0 | – | – | `chat/mlx_c8.json` |
+| lmstudio-mlx | 1 | 16/16 | 354 | – | 111 | 112 | 266 | 3.3 | 3.8 | 217 | 1.95 | 100 | 65.0→64.4 | 11 | – | – | `chat/lmstudio-mlx_c1.json` |
+| lmstudio-mlx | 8 | 32/32 | 329 | – | 86 | 377 | 990 | 17.4 | 24.0 | 325 | 3.79 | 100 | 64.3→60.1 | 9 | – | – | `chat/lmstudio-mlx_c8.json` |
+
 ## concurrency
 
 | server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
@@ -107,14 +120,44 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | 32 | 128/128 | 268 | – | 127 | 6659 | 7076 | 9.4 | 13.1 | 510 | 0.25 | 6 | 5.8→7.3 | 6 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32.json` |
 | lmstudio-mlx | 32 | 128/128 | 267 | – | 127 | 7572 | 8433 | 11.0 | 15.6 | 444 | 0.22 | 6 | 57.5→56.0 | 0 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32_rep2.json` |
 | lmstudio-mlx | 32 | 128/128 | 267 | – | 127 | 7474 | 8423 | 10.9 | 15.5 | 450 | 0.22 | 6 | 39.7→36.9 | 5 | 3 reps: 6659–7572 · 444–510 | – | `concurrency/lmstudio-mlx_c32_rep3.json` |
+| llamacpp-4b | 1 | 16/16 | 266 | 5 | 128 | 217 | 220 | 8.0 | 8.1 | 105 | 0.82 | 100 | 30.6→28.3 | 4 | – | 206 | `concurrency/llamacpp-4b_c1.json` |
+| llamacpp-4b | 2 | 16/16 | 268 | 6 | 128 | 406 | 428 | 12.7 | 12.9 | 129 | 1.01 | 100 | 28.9→33.2 | 4 | – | 388 | `concurrency/llamacpp-4b_c2.json` |
+| llamacpp-4b | 4 | 16/16 | 266 | 5 | 128 | 818 | 823 | 19.6 | 25.9 | 154 | 1.21 | 100 | 32.0→32.8 | 5 | – | 790 | `concurrency/llamacpp-4b_c4.json` |
+| llamacpp-4b | 8 | 32/32 | 268 | 7 | 128 | 1621 | 1703 | 15.8 | 15.9 | 287 | 0.00 | 0 | 31.6→34.8 | 5 | – | 1521 | `concurrency/llamacpp-4b_c8.json` |
+| llamacpp-4b | 16 | 64/64 | 268 | 8 | 128 | 5460 | 5631 | 18.4 | 29.8 | 271 | 0.00 | 0 | 35.8→33.6 | 5 | – | 1283 | `concurrency/llamacpp-4b_c16.json` |
+| llamacpp-4b | 32 | 128/128 | 267 | 8 | 128 | 13022 | 13674 | 18.1 | 29.3 | 268 | 0.00 | 0 | 34.1→31.8 | 5 | – | 1314 | `concurrency/llamacpp-4b_c32.json` |
+| lmstudio-gguf-4b | 1 | 16/16 | 266 | – | 128 | 224 | 283 | 11.5 | 15.7 | 72 | 0.57 | 100 | 19.5→19.6 | 4 | – | – | `concurrency/lmstudio-gguf-4b_c1.json` |
+| lmstudio-gguf-4b | 2 | 16/16 | 268 | – | 128 | 420 | 431 | 13.6 | 15.0 | 119 | 0.93 | 100 | 15.8→16.7 | 4 | – | – | `concurrency/lmstudio-gguf-4b_c2.json` |
+| lmstudio-gguf-4b | 4 | 16/16 | 266 | – | 128 | 804 | 829 | 15.6 | 16.4 | 183 | 1.43 | 100 | 17.3→20.5 | 5 | – | – | `concurrency/lmstudio-gguf-4b_c4.json` |
+| lmstudio-gguf-4b | 8 | 32/32 | 266 | – | 128 | 1545 | 1660 | 19.7 | 20.4 | 254 | 0.00 | 0 | 20.6→20.4 | 4 | – | – | `concurrency/lmstudio-gguf-4b_c8.json` |
+| lmstudio-gguf-4b | 16 | 64/64 | 268 | – | 128 | 5877 | 6146 | 20.5 | 22.1 | 244 | 0.00 | 0 | 20.6→25.2 | 5 | – | – | `concurrency/lmstudio-gguf-4b_c16.json` |
+| lmstudio-gguf-4b | 32 | 128/128 | 268 | – | 128 | 14544 | 17231 | 22.5 | 38.4 | 226 | 0.00 | 0 | 25.4→24.4 | 5 | – | – | `concurrency/lmstudio-gguf-4b_c32.json` |
+| lmstudio-mlx-4b | 1 | 16/16 | 268 | – | 127 | 274 | 294 | 6.5 | 7.0 | 115 | 0.91 | 100 | 26.4→30.4 | 5 | – | – | `concurrency/lmstudio-mlx-4b_c1.json` |
+| lmstudio-mlx-4b | 2 | 16/16 | 268 | – | 127 | 469 | 659 | 8.3 | 10.8 | 163 | 1.28 | 100 | 33.3→30.8 | 4 | – | – | `concurrency/lmstudio-mlx-4b_c2.json` |
+| lmstudio-mlx-4b | 4 | 16/16 | 266 | – | 127 | 958 | 1274 | 11.6 | 14.3 | 206 | 1.01 | 62 | 31.0→32.9 | 4 | – | – | `concurrency/lmstudio-mlx-4b_c4.json` |
+| lmstudio-mlx-4b | 8 | 32/32 | 265 | – | 127 | 1934 | 2428 | 23.2 | 32.3 | 210 | 0.15 | 9 | 28.6→29.3 | 5 | – | – | `concurrency/lmstudio-mlx-4b_c8.json` |
+| lmstudio-mlx-4b | 16 | 64/64 | 267 | – | 127 | 6427 | 7366 | 21.7 | 31.7 | 217 | 0.00 | 0 | 27.9→25.4 | 4 | – | – | `concurrency/lmstudio-mlx-4b_c16.json` |
+| lmstudio-mlx-4b | 32 | 128/128 | 267 | – | 127 | 15195 | 17458 | 21.9 | 32.8 | 221 | 0.00 | 0 | 24.8→28.0 | 4 | – | – | `concurrency/lmstudio-mlx-4b_c32.json` |
+| mlx-4b | 1 | 16/16 | 268 | 10 | 128 | 227 | 237 | 8.7 | 8.9 | 96 | 0.75 | 100 | 28.0→30.3 | 4 | – | – | `concurrency/mlx-4b_c1.json` |
+| mlx-4b | 2 | 16/16 | 268 | 10 | 128 | 402 | 424 | 9.5 | 9.8 | 159 | 1.24 | 100 | 38.4→38.6 | 4 | – | – | `concurrency/mlx-4b_c2.json` |
+| mlx-4b | 4 | 16/16 | 268 | 10 | 128 | 652 | 1073 | 12.7 | 18.1 | 210 | 1.34 | 81 | 38.5→40.0 | 4 | – | – | `concurrency/mlx-4b_c4.json` |
+| mlx-4b | 8 | 32/32 | 267 | 8 | 128 | 1557 | 1848 | 22.5 | 23.7 | 235 | 0.00 | 0 | 39.7→37.9 | 4 | – | – | `concurrency/mlx-4b_c8.json` |
+| mlx-4b | 16 | 64/64 | 265 | 7 | 128 | 4453 | 5306 | 33.7 | 37.5 | 235 | 0.00 | 0 | 38.0→33.5 | 4 | – | – | `concurrency/mlx-4b_c16.json` |
+| mlx-4b | 32 | 128/128 | 267 | 8 | 128 | 13193 | 14490 | 34.1 | 37.5 | 235 | 0.00 | 0 | 31.7→28.4 | 5 | – | – | `concurrency/mlx-4b_c32.json` |
 
 ## prefix
 
 | server | x | ok/n | prompt tok | cached tok | out tok | TTFT p50 | TTFT p99 | TPOT p50 | TPOT p99 | out tok/s | goodput req/s | SLO % | load before→after | GPU % before | spread: TTFT p50 · tok/s | server prompt ms | file |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| llamacpp | 0 | 32/32 | 2060 | 7 | 64 | 1960 | 3026 | 22.2 | 41.3 | 74 | 0.00 | 0 | 3.1→2.7 | 5 | – | – | `prefix/llamacpp_s0.json` |
-| llamacpp | 1024 | 32/32 | 2060 | 1001 | 64 | 3219 | 5178 | 39.4 | 84.3 | 45 | 0.02 | 3 | 2.7→2.0 | 4 | – | – | `prefix/llamacpp_s1024.json` |
-| llamacpp | 1920 | 32/32 | 2059 | 1748 | 64 | 270 | 1740 | 17.0 | 26.9 | 175 | 2.48 | 91 | 2.1→2.1 | 5 | – | – | `prefix/llamacpp_s1920.json` |
+| llamacpp | 0 | 32/32 | 2060 | 7 | 64 | 1960 | 3026 | 22.2 | 41.3 | 74 | 0.00 | 0 | 3.1→2.7 | 5 | 3 reps: 1564–1960 · 59–74 | – | `prefix/llamacpp_s0.json` |
+| llamacpp | 0 | 32/32 | 2059 | 7 | 64 | 1564 | 2983 | 33.5 | 55.0 | 66 | 0.10 | 9 | 32.9→36.9 | 4 | 3 reps: 1564–1960 · 59–74 | 1162 | `prefix/llamacpp_s0_rep2.json` |
+| llamacpp | 0 | 32/32 | 2060 | 7 | 64 | 1661 | 2808 | 37.1 | 69.0 | 59 | 0.03 | 3 | 31.5→52.5 | 1 | 3 reps: 1564–1960 · 59–74 | 1165 | `prefix/llamacpp_s0_rep3.json` |
+| llamacpp | 1024 | 32/32 | 2060 | 1001 | 64 | 3219 | 5178 | 39.4 | 84.3 | 45 | 0.02 | 3 | 2.7→2.0 | 4 | 3 reps: 1212–3219 · 45–106 | – | `prefix/llamacpp_s1024.json` |
+| llamacpp | 1024 | 32/32 | 2060 | 1001 | 64 | 1233 | 1820 | 18.3 | 27.5 | 106 | 0.78 | 47 | 34.1→36.1 | 4 | 3 reps: 1212–3219 · 45–106 | 699 | `prefix/llamacpp_s1024_rep2.json` |
+| llamacpp | 1024 | 32/32 | 2059 | 1000 | 64 | 1212 | 1748 | 18.8 | 28.4 | 104 | 0.76 | 47 | 30.9→31.5 | 17 | 3 reps: 1212–3219 · 45–106 | 722 | `prefix/llamacpp_s1024_rep3.json` |
+| llamacpp | 1920 | 32/32 | 2059 | 1748 | 64 | 270 | 1740 | 17.0 | 26.9 | 175 | 2.48 | 91 | 2.1→2.1 | 5 | 3 reps: 270–312 · 156–175 | – | `prefix/llamacpp_s1920.json` |
+| llamacpp | 1920 | 32/32 | 2060 | 1749 | 64 | 296 | 2238 | 17.7 | 27.5 | 156 | 2.13 | 88 | 36.3→38.1 | 5 | 3 reps: 270–312 · 156–175 | 336 | `prefix/llamacpp_s1920_rep2.json` |
+| llamacpp | 1920 | 32/32 | 2060 | 1749 | 64 | 312 | 1739 | 16.3 | 24.3 | 169 | 2.31 | 88 | 39.0→38.8 | 0 | 3 reps: 270–312 · 156–175 | 262 | `prefix/llamacpp_s1920_rep3.json` |
 | lmstudio-gguf | 0 | 32/32 | 2059 | – | 64 | 1728 | 2750 | 20.8 | 31.3 | 83 | 0.00 | 0 | 5.4→8.0 | 4 | – | – | `prefix/lmstudio-gguf_s0.json` |
 | lmstudio-gguf | 1024 | 32/32 | 2059 | – | 64 | 1436 | 3364 | 15.9 | 58.3 | 80 | 0.20 | 16 | 2.9→2.5 | 4 | – | – | `prefix/lmstudio-gguf_s1024.json` |
 | lmstudio-gguf | 1920 | 32/32 | 2060 | – | 64 | 126 | 2707 | 12.3 | 35.3 | 165 | 1.86 | 72 | 2.5→3.3 | 5 | – | – | `prefix/lmstudio-gguf_s1920.json` |
@@ -124,6 +167,18 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | 0 | 32/32 | 2058 | – | 63 | 2173 | 2698 | 7.0 | 27.5 | 86 | 0.00 | 0 | 3.4→3.3 | 6 | – | – | `prefix/lmstudio-mlx_s0.json` |
 | lmstudio-mlx | 1024 | 32/32 | 2060 | – | 63 | 1371 | 1436 | 6.9 | 17.1 | 140 | 0.21 | 9 | 3.5→3.4 | 8 | – | – | `prefix/lmstudio-mlx_s1024.json` |
 | lmstudio-mlx | 1920 | 32/32 | 2059 | – | 63 | 546 | 570 | 6.8 | 8.1 | 260 | 4.13 | 100 | 3.2→3.1 | 6 | – | – | `prefix/lmstudio-mlx_s1920.json` |
+| llamacpp-cache-ram0 | 0 | 32/32 | 2059 | 7 | 64 | 1457 | 2947 | 32.7 | 50.3 | 69 | 0.13 | 12 | 38.7→37.0 | 5 | – | 1158 | `prefix/llamacpp-cache-ram0_s0.json` |
+| llamacpp-cache-ram0 | 1024 | 32/32 | 2060 | 937 | 64 | 772 | 2334 | 22.5 | 35.9 | 111 | 1.57 | 91 | 34.0→32.3 | 5 | – | 481 | `prefix/llamacpp-cache-ram0_s1024.json` |
+| llamacpp-cache-ram0 | 1920 | 32/32 | 2060 | 1749 | 64 | 146 | 2019 | 19.7 | 41.7 | 162 | 2.29 | 91 | 30.2→30.1 | 5 | – | 172 | `prefix/llamacpp-cache-ram0_s1920.json` |
+| llamacpp-no-kvu | 0 | 32/32 | 2060 | 7 | 64 | 1432 | 2826 | 32.2 | 49.7 | 70 | 0.17 | 16 | 33.9→31.8 | 5 | – | 1103 | `prefix/llamacpp-no-kvu_s0.json` |
+| llamacpp-no-kvu | 1024 | 32/32 | 2060 | 1001 | 64 | 1124 | 1573 | 16.6 | 25.9 | 118 | 0.86 | 47 | 30.2→30.2 | 4 | – | 673 | `prefix/llamacpp-no-kvu_s1024.json` |
+| llamacpp-no-kvu | 1920 | 32/32 | 2060 | 1749 | 64 | 263 | 1789 | 17.0 | 24.0 | 169 | 2.30 | 88 | 30.4→29.7 | 5 | – | 297 | `prefix/llamacpp-no-kvu_s1920.json` |
+| llamacpp-reuse256 | 0 | 32/32 | 2059 | 7 | 64 | 1472 | 2913 | 32.9 | 50.4 | 68 | 0.13 | 12 | 25.1→27.2 | 5 | – | 1139 | `prefix/llamacpp-reuse256_s0.json` |
+| llamacpp-reuse256 | 1024 | 32/32 | 2060 | 1001 | 64 | 1191 | 1742 | 17.2 | 29.1 | 108 | 0.63 | 38 | 27.6→26.5 | 4 | – | 673 | `prefix/llamacpp-reuse256_s1024.json` |
+| llamacpp-reuse256 | 1920 | 32/32 | 2059 | 1748 | 64 | 348 | 2197 | 17.5 | 27.3 | 153 | 2.09 | 88 | 27.6→29.7 | 4 | – | 327 | `prefix/llamacpp-reuse256_s1920.json` |
+| llamacpp-sps0 | 0 | 32/32 | 2059 | 7 | 64 | 1457 | 2798 | 32.6 | 48.8 | 70 | 0.21 | 19 | 28.1→27.6 | 4 | – | 1105 | `prefix/llamacpp-sps0_s0.json` |
+| llamacpp-sps0 | 1024 | 32/32 | 2060 | 1033 | 64 | 1163 | 1845 | 24.1 | 31.3 | 95 | 0.56 | 38 | 27.3→25.7 | 5 | – | 683 | `prefix/llamacpp-sps0_s1024.json` |
+| llamacpp-sps0 | 1920 | 32/32 | 2059 | 1928 | 64 | 340 | 421 | 19.3 | 21.4 | 168 | 2.63 | 100 | 25.5→25.9 | 4 | – | 215 | `prefix/llamacpp-sps0_s1920.json` |
 
 ## prompt
 
@@ -149,6 +204,26 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | 1024 | 8/8 | 1034 | – | 63 | 329 | 340 | 3.3 | 3.9 | 116 | 1.85 | 100 | 5.8→7.8 | 6 | – | – | `prompt/lmstudio-mlx_t1024.json` |
 | lmstudio-mlx | 2048 | 8/8 | 2059 | – | 63 | 548 | 554 | 3.5 | 3.6 | 82 | 1.31 | 100 | 4.2→3.9 | 8 | – | – | `prompt/lmstudio-mlx_t2048.json` |
 | lmstudio-mlx | 3584 | 8/8 | 3595 | – | 63 | 1049 | 1096 | 3.7 | 3.8 | 49 | 0.00 | 0 | 3.3→3.4 | 6 | – | – | `prompt/lmstudio-mlx_t3584.json` |
+| llamacpp-4b | 128 | 8/8 | 139 | 2 | 64 | 132 | 134 | 8.1 | 8.4 | 100 | 1.56 | 100 | 30.6→30.4 | 4 | – | 122 | `prompt/llamacpp-4b_t128.json` |
+| llamacpp-4b | 512 | 8/8 | 523 | 2 | 64 | 433 | 460 | 8.5 | 8.9 | 68 | 1.05 | 100 | 30.8→30.9 | 5 | – | 401 | `prompt/llamacpp-4b_t512.json` |
+| llamacpp-4b | 1024 | 8/8 | 1035 | 3 | 64 | 920 | 987 | 9.0 | 9.2 | 43 | 0.68 | 100 | 31.9→31.8 | 4 | – | 858 | `prompt/llamacpp-4b_t1024.json` |
+| llamacpp-4b | 2048 | 8/8 | 2059 | 2 | 64 | 1851 | 1999 | 9.2 | 9.5 | 26 | 0.00 | 0 | 30.1→31.9 | 5 | – | 1807 | `prompt/llamacpp-4b_t2048.json` |
+| llamacpp-4b | 3584 | 8/8 | 3595 | 2 | 64 | 3441 | 3534 | 9.8 | 10.0 | 16 | 0.00 | 0 | 31.9→30.8 | 4 | – | 3378 | `prompt/llamacpp-4b_t3584.json` |
+| lmstudio-gguf-4b | 128 | 8/8 | 139 | – | 64 | 125 | 127 | 9.2 | 9.5 | 91 | 1.42 | 100 | 20.0→20.8 | 4 | – | – | `prompt/lmstudio-gguf-4b_t128.json` |
+| lmstudio-gguf-4b | 512 | 8/8 | 521 | – | 64 | 379 | 396 | 9.3 | 9.9 | 66 | 1.04 | 100 | 19.4→18.6 | 5 | – | – | `prompt/lmstudio-gguf-4b_t512.json` |
+| lmstudio-gguf-4b | 1024 | 8/8 | 1035 | – | 64 | 891 | 987 | 13.2 | 17.5 | 37 | 0.58 | 100 | 19.6→18.4 | 5 | – | – | `prompt/lmstudio-gguf-4b_t1024.json` |
+| lmstudio-gguf-4b | 2048 | 8/8 | 2054 | – | 64 | 1666 | 1729 | 11.2 | 12.0 | 27 | 0.00 | 0 | 15.1→20.3 | 5 | – | – | `prompt/lmstudio-gguf-4b_t2048.json` |
+| lmstudio-gguf-4b | 3584 | 8/8 | 3595 | – | 64 | 3251 | 3349 | 14.0 | 15.1 | 15 | 0.00 | 0 | 20.9→25.6 | 4 | – | – | `prompt/lmstudio-gguf-4b_t3584.json` |
+| lmstudio-mlx-4b | 128 | 8/8 | 138 | – | 63 | 192 | 253 | 6.6 | 8.8 | 100 | 1.59 | 100 | 26.4→23.4 | 0 | – | – | `prompt/lmstudio-mlx-4b_t128.json` |
+| lmstudio-mlx-4b | 512 | 8/8 | 522 | – | 63 | 567 | 626 | 6.3 | 6.7 | 65 | 1.03 | 100 | 22.1→20.2 | 0 | – | – | `prompt/lmstudio-mlx-4b_t512.json` |
+| lmstudio-mlx-4b | 1024 | 8/8 | 1035 | – | 63 | 995 | 1103 | 6.5 | 7.5 | 47 | 0.37 | 50 | 17.6→17.2 | 0 | – | – | `prompt/lmstudio-mlx-4b_t1024.json` |
+| lmstudio-mlx-4b | 2048 | 8/8 | 2057 | – | 63 | 1777 | 1986 | 6.9 | 7.4 | 28 | 0.00 | 0 | 17.0→15.4 | 0 | – | – | `prompt/lmstudio-mlx-4b_t2048.json` |
+| lmstudio-mlx-4b | 3584 | 8/8 | 3595 | – | 63 | 3490 | 3874 | 7.7 | 8.7 | 16 | 0.00 | 0 | 14.7→16.6 | 0 | – | – | `prompt/lmstudio-mlx-4b_t3584.json` |
+| mlx-4b | 128 | 8/8 | 138 | 8 | 64 | 146 | 151 | 8.4 | 8.5 | 95 | 1.48 | 100 | 32.2→32.7 | 5 | – | – | `prompt/mlx-4b_t128.json` |
+| mlx-4b | 512 | 8/8 | 521 | 7 | 64 | 416 | 450 | 8.5 | 8.7 | 68 | 1.07 | 100 | 33.3→32.7 | 5 | – | – | `prompt/mlx-4b_t512.json` |
+| mlx-4b | 1024 | 8/8 | 1032 | 6 | 64 | 811 | 885 | 8.5 | 8.7 | 48 | 0.76 | 100 | 32.1→32.5 | 5 | – | – | `prompt/mlx-4b_t1024.json` |
+| mlx-4b | 2048 | 8/8 | 2059 | 9 | 64 | 1734 | 1848 | 8.9 | 9.0 | 28 | 0.00 | 0 | 29.8→27.6 | 4 | – | – | `prompt/mlx-4b_t2048.json` |
+| mlx-4b | 3584 | 8/8 | 3595 | 9 | 64 | 3070 | 3873 | 9.7 | 16.7 | 16 | 0.00 | 0 | 24.3→21.2 | 70 | – | – | `prompt/mlx-4b_t3584.json` |
 
 ## rate
 
@@ -226,6 +301,15 @@ run shared the GPU with something else (usually a Blender render).
 | lmstudio-mlx | 8 | 320/320 | 266 | – | 127 | 18136 | 40413 | 12.4 | 15.5 | 493 | 0.11 | 3 | 5.7→5.9 | 0 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8.json` |
 | lmstudio-mlx | 8 | 320/320 | 268 | – | 127 | 23057 | 49718 | 13.3 | 17.5 | 443 | 0.10 | 3 | 38.2→40.6 | 5 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8_rep2.json` |
 | lmstudio-mlx | 8 | 320/320 | 269 | – | 127 | 22198 | 47602 | 12.7 | 16.9 | 453 | 0.10 | 3 | 38.7→32.9 | 5 | 3 reps: 18136–23057 · 443–493 | – | `rate/lmstudio-mlx_r8_rep3.json` |
+| llamacpp-b128 | 2 | 80/80 | 267 | 8 | 128 | 133 | 286 | 9.7 | 18.1 | 230 | 1.79 | 100 | 68.9→60.4 | 2 | – | 121 | `rate/llamacpp-b128_r2.json` |
+| llamacpp-b128 | 3 | 120/120 | 267 | 8 | 128 | 176 | 1102 | 16.3 | 21.1 | 318 | 2.44 | 98 | 57.0→33.7 | 1 | – | 146 | `rate/llamacpp-b128_r3.json` |
+| llamacpp-b128 | 4 | 160/160 | 267 | 8 | 128 | 448 | 2287 | 14.8 | 18.9 | 427 | 2.52 | 76 | 15.6→18.3 | 4 | – | 143 | `rate/llamacpp-b128_r4.json` |
+| llamacpp-ub128 | 2 | 80/80 | 268 | 8 | 128 | 109 | 220 | 10.0 | 19.2 | 229 | 1.79 | 100 | 19.8→25.9 | 4 | – | 100 | `rate/llamacpp-ub128_r2.json` |
+| llamacpp-ub128 | 3 | 120/120 | 268 | 9 | 128 | 115 | 599 | 14.9 | 18.5 | 324 | 2.53 | 100 | 27.9→24.4 | 4 | – | 104 | `rate/llamacpp-ub128_r3.json` |
+| llamacpp-ub128 | 4 | 160/160 | 268 | 9 | 128 | 433 | 2422 | 15.5 | 18.8 | 435 | 2.46 | 72 | 25.2→23.7 | 5 | – | 105 | `rate/llamacpp-ub128_r4.json` |
+| llamacpp-ub2048 | 2 | 80/80 | 266 | 7 | 128 | 106 | 212 | 9.9 | 17.7 | 230 | 1.79 | 100 | 70.8→74.1 | 0 | – | 94.2 | `rate/llamacpp-ub2048_r2.json` |
+| llamacpp-ub2048 | 3 | 120/120 | 267 | 8 | 128 | 116 | 693 | 15.4 | 18.7 | 324 | 2.53 | 100 | 73.5→67.4 | 0 | – | 97.6 | `rate/llamacpp-ub2048_r3.json` |
+| llamacpp-ub2048 | 4 | 160/160 | 268 | 9 | 128 | 497 | 2233 | 15.1 | 20.1 | 438 | 2.61 | 76 | 69.0→60.9 | 0 | – | 98.7 | `rate/llamacpp-ub2048_r4.json` |
 
 ## stalls
 

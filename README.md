@@ -222,8 +222,14 @@ at random times. Numbers at 3 req/s (`results/SUMMARY.md`, section "stalls"):
 - **`mlx_lm.server` stalls too, just less.** 74% of its first tokens come 20–50 ms after a stall.
   It loses 57 ms per request, less than its one-user TTFT of 97 ms, and llama.cpp loses 259 ms,
   three times its one-user TTFT of 84 ms. Both merge arrivals (2.1 and 1.7 requests per stall),
-  so merging alone does not explain the gap. I have not found the reason. Client timestamps can't
-  show it, and the runs with a smaller `-ub` that could are still to do.
+  so merging alone does not explain the gap. I have not found the reason. The batch size is not it
+  (next bullet).
+- **Smaller or larger batches do not change llama.cpp's stalls** (Nov 5, load 16–73, GPU gate only;
+  `results/rate/llamacpp-ub128_*`, `-ub2048_*`, `-b128_*`). At 3 req/s each stall lasts 113–149 ms
+  and comes about once per request, with `-ub 128`, `-ub 2048` or `-b 128 -ub 128` alike; the default
+  repeats give 130–137 ms. Stall ms per request is 97–121 for the variants vs 121–138 for the default
+  repeats, inside the band. A ~270-token prompt fits one 512-token batch anyway, and splitting it
+  into 128-token pieces did not let decode steps run between them. So the batch-size hypothesis is out.
 - **LM Studio MLX is the weakest evidence.** 23% of its gaps are under 1 ms in both closed and
   open loop: it sends tokens in bunches, so a gap is not one decode step. Moving the threshold to
   20 or 50 ms moves its stall share between 63% and 38% (49–57% on llama.cpp). First tokens stay
@@ -235,7 +241,7 @@ at random times. Numbers at 3 req/s (`results/SUMMARY.md`, section "stalls"):
   not in TPOT. At 3 req/s arrivals are staggered, and 119 of 120 requests arrive while another
   stream is decoding. Real traffic looks like the second case.
 
-These are single runs that started with other apps at 4–6.4% GPU. Client timestamps show that
+The table rows are single runs from Nov 1 that started with other apps at 4–6.4% GPU. Client timestamps show that
 stalls and first tokens coincide, not what the server was doing during a stall.
 
 ### Same mean rate (2 req/s), different burstiness
@@ -266,6 +272,29 @@ TTFT grows linearly with prompt length: prefill runs at ~3.0k tokens/s (llama.cp
 ~3.5k tokens/s (MLX), counting TTFT as pure prefill. On llama.cpp and mlx, TPOT grows by
 ~25% from a 139-token to a 3.6k-token context, because attention reads a longer KV cache.
 
+### Second size: Qwen3-4B (Nov 5)
+
+The same concurrency and prompt points with Qwen3-4B (Q4_K_M GGUF, 2.5 GB; MLX 4-bit, 2.3 GB),
+run once with `SIZE=4B scripts/bench.sh <server> concurrency prompt`. Results are labelled
+`<server>-4b` (`results/concurrency/*-4b_*.json`, `results/prompt/*-4b_*.json`) and drawn dashed.
+They ran 02:05–02:44 with the GPU gate only, at load 20–40, so the fair 1.7B comparison is the
+CPU-loaded rep3 from "Repeats" (llama.cpp's rep3 ran under load 8). tok/s at 1 and 8 users,
+TTFT for a 3595-token prompt:
+
+| server | 1.7B rep3: 1 user / 8 users | 4B: 1 user / 8 users | 4B ÷ 1.7B at 8 users | 3595-token TTFT 1.7B (Nov 1) → 4B |
+|---|---|---|---|---|
+| `llamacpp` | 208 / 611 | 105 / 287 | 0.47 | 1187 → 3441 ms |
+| `lmstudio-gguf` | 126 / 427 | 72 / 254 | 0.59 | 1125 → 3251 |
+| `mlx` | 135 / 434 | 96 / 235 | 0.54 | 1027 → 3070 |
+| `lmstudio-mlx` | 181 / 409 | 115 / 210 | 0.51 | 1049 → 3490 |
+
+- 4B has 2.4× the parameters and 1.9–2.3× the weight bytes. At 8 users it delivers 0.47–0.59× the
+  1.7B throughput, about what reading twice the weights per step predicts.
+- Prefill for a long prompt is ~3× slower (~1.0–1.2k tokens/s), a bit more than the parameter ratio.
+  The 1.7B prompt runs were on a quiet machine, so part of that is the load.
+- The server order at 8 users stays close: llama.cpp is first on both sizes, and the MLX servers
+  are within 15% of each other.
+
 ### Shared prompt prefix (2060-token prompts, 4 users)
 
 ![prefix](docs/img/prefix.png)
@@ -282,10 +311,61 @@ TTFT grows linearly with prompt length: prefill runs at ~3.0k tokens/s (llama.cp
   and p99 stays close to p50.
 - The llama.cpp-based servers keep a high p99: the first request on each of the 8 slots
   still pays for the full prefill.
-- On llama.cpp, a half-shared prefix made TTFT *worse* than no sharing (3.2 s vs 2.0 s),
-  even though ~1000 tokens per request came from cache. I have not found the cause yet.
+- On Nov 1, llama.cpp's half-shared prefix made TTFT *worse* than no sharing (3.2 s vs 2.0 s),
+  even though ~1000 tokens per request came from cache. That did not repeat (below).
 
 LM Studio does not report `cached_tokens`.
+
+**The llama.cpp anomaly, re-run (Nov 5, 01:34–03:00).** Two more default passes plus one run per
+llama-server flag that could explain it. The same llama.cpp build as Nov 1 (8642541b2), GPU gate only,
+load 25–39. Since Nov 4 each request also stores llama-server's own `timings` from the final chunk,
+so "server prompt ms" (the server's mean `prompt_ms`) can be set against client TTFT:
+
+| run | s0 TTFT p50 / server prompt ms | s1024 | s1920 |
+|---|---|---|---|
+| default, Nov 1 | 1960 / – | 3219 / – | 270 / – |
+| default, rep2 | 1564 / 1162 | 1233 / 699 | 296 / 336 |
+| default, rep3 | 1661 / 1165 | 1212 / 722 | 312 / 262 |
+| `--cache-ram 0` | 1457 / 1158 | **772 / 481** | **146 / 172** |
+| `--no-kv-unified` | 1432 / 1103 | 1124 / 673 | 263 / 297 |
+| `-sps 0` | 1457 / 1105 | 1163 / 683 | 340 / 215 |
+| `--cache-reuse 256` | 1472 / 1139 | 1191 / 673 | 348 / 327 |
+
+(`results/prefix/llamacpp*_s*.json`)
+
+- **s1024 slower than s0 did not come back** in any of the 6 runs: s1024 is 19–47% faster than s0.
+  Nov 1 had the same cache hits (1001 tokens per request), so the cache worked that day too, and
+  the 3.2 s is a one-off I can't explain from the client side.
+- **`--cache-ram 0` is the only flag that changed anything.** It turns off llama-server's host-RAM
+  prompt cache. Server prompt time at s1024 fell from ~700 to 481 ms, and TTFT at s1920 to half,
+  although it reused *fewer* tokens (937 vs 1001 at s1024). So part of the prompt time at default
+  settings is cache bookkeeping, not prefill. This is one run, so take it as a lead, not a result.
+- Client TTFT minus server prompt time is 290–530 ms at s0 and s1024 on every run: with 4 users,
+  a request waits for the other prompts in the same batch.
+
+### Chat endpoint with lognormal lengths (Nov 5)
+
+`scripts/bench.sh <server> chat`: `/v1/chat/completions` with each server's chat template and
+Qwen3's thinking off, prompt and output lengths drawn lognormal (σ = 0.6) around 256 and 128
+tokens with a fixed seed, so every server gets the same sequence. One run per point, GPU gate only,
+load 36–65 (`results/chat/*.json`):
+
+| server | 1 user: TTFT / TPOT / tok/s | 8 users: TTFT / TPOT / tok/s | output tokens: got / asked (8 users) | full-length answers (8 users) |
+|---|---|---|---|---|
+| `llamacpp` | 78 / 4.5 / 185 | 147 / 15.0 / 441 | 101.9 / 101.9 | 32/32 |
+| `lmstudio-gguf` | 108 / 5.7 / 139 | 243 / 18.6 / 324 | 78.6 / 101.9 | 23/32 |
+| `mlx` | 89 / 4.4 / 178 | 705 / 13.7 / 308 | 84.4 / 101.9 | 26/32 |
+| `lmstudio-mlx` | 112 / 3.3 / 217 | 377 / 17.4 / 325 | 85.8 / 101.9 | 0/32 |
+
+- Only llama-server honours `ignore_eos` on the chat endpoint. The others stop when the model ends
+  its answer, and LM Studio MLX always returns one token less than asked. So tok/s here compares
+  different amounts of work; TTFT and TPOT are per request and still compare.
+- With variable lengths at 8 users, TPOT is 14–19 ms on every server, close to the open-loop
+  numbers and well above the 8.5 ms of the equal-length closed loop. Unequal lengths break the
+  lockstep cohorts described above, so prefills land on running streams.
+- `mlx_lm.server`'s 8-user TTFT (705 ms) is 1.9–4.8× the others'. This is one run at load 36.
+- The template adds ~12 tokens (mean prompt 356 vs 343 words plus the nonce at 1 user). LM Studio gets the
+  thinking switch as ` /no_think` in the message (see `docs/DESIGN.md`).
 
 ## Limitations
 
@@ -295,11 +375,11 @@ LM Studio does not report `cached_tokens`.
   mix machine states.
   Before that, the only repeat was lmstudio-mlx at 16 and 32 users on two different days, which
   agreed within 2%.
-- One model size (1.7B). Its 4-bit quantizations differ slightly between GGUF and MLX
+- Two model sizes, and 4B only as one CPU-loaded pass. The 4-bit quantizations differ slightly between GGUF and MLX
   (~4.9 vs ~4.5 bits/weight), so MLX-vs-llama.cpp results compare engine plus
   quantization. The LM Studio-vs-upstream pairs use identical weight files.
-- Prompts are random common words fed to `/v1/completions`. The tests cover neither chat
-  templates nor realistic output-length distributions.
+- Prompts are random common words. Most experiments use `/v1/completions` with fixed lengths; only
+  the chat experiment uses chat templates and lognormal lengths, and it is one run per point.
 - `mlx_lm.server` cannot ignore EOS. All of its runs still produced the full output length
   (`mean_output_tokens` in each file). LM Studio's MLX engine returns 127 of 128 tokens.
 - The client is Python (asyncio + httpx). Against the fake server at 1 ms/token, it took in
