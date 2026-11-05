@@ -102,8 +102,9 @@ async def send(client: httpx.AsyncClient, url: str, body: dict, req: Request, t0
                     req.server_timings = {k: t[k] for k in TIMING_KEYS if k in t}
                 for ch in obj.get("choices") or []:
                     delta = ch.get("delta") or {}
-                    if delta.get("reasoning_content"):
-                        # Thinking left on: TTFT would time the reasoning, not the answer.
+                    if (delta.get("reasoning_content") or "").strip():
+                        # Thinking left on: TTFT would time the reasoning, not the answer. LM Studio
+                        # MLX sends an empty "\n\n" think block even with /no_think.
                         req.error = "reasoning output"
                         return
                     if ch.get("text") or delta.get("content"):
@@ -178,7 +179,7 @@ async def run(cfg: dict) -> dict:
 
     def body(po):
         p, max_tokens = po
-        text = {"messages": [{"role": "user", "content": p}]} if cfg.get("endpoint") == "chat" \
+        text = {"messages": [{"role": "user", "content": p + cfg.get("user_suffix", "")}]} if cfg.get("endpoint") == "chat" \
             else {"prompt": p}
         b = {"model": cfg["model"], **text, "max_tokens": max_tokens,
              "temperature": 0, "stream": True, "stream_options": {"include_usage": True}}

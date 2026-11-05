@@ -82,6 +82,8 @@ def test_chat_endpoint_with_per_request_lengths():
     assert len({r["prompt_tokens"] for r in reqs}) > 1 and len({r["output_tokens"] for r in reqs}) > 1
     assert [r["output_tokens"] for r in reqs] == lengths(13, 20, 0.5, "0-olen")[1:]  # after 1 warmup
     assert [r["prompt_tokens"] for r in reqs] == [n + 1 for n in lengths(13, 100, 0.5, "0-plen")[1:]]
+    res = asyncio.run(_with_fake({"endpoint": "chat", "n": 2, "user_suffix": " /no_think"}))
+    assert [r["prompt_tokens"] for r in res["requests"]] == [102, 102]  # the suffix is one more word
 
 
 def _cfg(port, **kw):

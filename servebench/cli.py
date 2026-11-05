@@ -11,7 +11,7 @@ def cmd_run(a):
     cfg = {k: getattr(a, k) for k in (
         "url", "model", "label", "pattern", "n", "concurrency", "rate", "burst", "prompt_tokens",
         "shared_prefix", "max_tokens", "ignore_eos", "seed", "warmup", "slo_ttft", "slo_tpot",
-        "endpoint", "prompt_sigma", "output_sigma")}
+        "endpoint", "prompt_sigma", "output_sigma", "user_suffix")}
     cfg["extra_body"] = json.loads(a.extra_body)
     cfg["tags"] = dict(t.split("=", 1) for t in a.tag)
     res = asyncio.run(run(cfg))
@@ -50,6 +50,8 @@ def main():
                    help="lognormal prompt lengths with mean --prompt-tokens (0: all equal)")
     r.add_argument("--output-sigma", type=float, default=0.0,
                    help="lognormal output lengths with mean --max-tokens (0: all equal)")
+    r.add_argument("--user-suffix", default="",
+                   help="chat: text appended to each user message, e.g. ' /no_think' for Qwen3")
     r.add_argument("--ignore-eos", action="store_true")
     r.add_argument("--seed", type=int, default=0)
     r.add_argument("--warmup", type=int, default=2)

@@ -14,6 +14,12 @@ All three servers expose the OpenAI completions endpoint. Using it instead of
 
 The cost: template rendering is not measured. On a 1.7B model that is noise next to prefill.
 
+The `chat` experiment (`--endpoint chat`) covers the other case. Thinking has to be switched off
+per server: llama.cpp takes `chat_template_kwargs`, `mlx_lm.server` takes `--chat-template-args` at
+start, and LM Studio ignores both (its MLX engine ignores `reasoning_effort` too). For LM Studio,
+bench.sh appends Qwen3's ` /no_think` switch to the user message (`--user-suffix`). A request that
+still streams non-blank `reasoning_content` fails with "reasoning output".
+
 ## Synthetic prompts from common words
 
 Prompts are random sequences drawn from 142 common English words. Nearly every one is a single Qwen3 token
@@ -118,8 +124,9 @@ file already has, so it needs no server changes and works the same on all four s
   the rate to beat. My first version compared with gaps that were not stalls and used a ±20 ms window, which
   made both MLX servers look unrelated: their first token comes 20–50 ms after the stall.
   Plotting the lag showed that, so the window now reaches 100 ms.
-- **Stalls and first tokens only coincide.** This shows timing, not cause. A server-side trace, or
-  runs with a different `-ub`, would be the direct test.
+- **Stalls and first tokens only coincide.** This shows timing, not cause. Runs with `-ub 128`,
+  `-ub 2048` and `-b 128 -ub 128` left the stalls as they were, so batch size is ruled out. A
+  server-side trace would be the next test.
 
 ## Client
 

@@ -185,13 +185,14 @@ def stall_table(data: dict) -> list[str]:
 
 def _lines(ax, by_server, metric, title, ylabel, logx=False, p99=False):
     """Median over repeats; a band from min to max where a point has more than one run."""
+    variants = [s for s in labels(by_server) if s not in SERVERS]
     for server in labels(by_server):
         pts = [(x, [r["summary"] for r in rs if r["summary"]["n_ok"]])
                for x, rs in grouped(by_server[server])]
         pts = [(x, ss) for x, ss in pts if ss]
         xs = [x for x, _ in pts]
         p50 = [[metric(s, "p50") for s in ss] for _, ss in pts]
-        ax.plot(xs, [statistics.median(v) for v in p50], "o-" if server in SERVERS else "o--",
+        ax.plot(xs, [statistics.median(v) for v in p50], "o-" if server in SERVERS else "sv^DP<>"[variants.index(server) % 7] + "--",
                 color=color(server), label=server + (" p50" if p99 else ""))
         if any(len(v) > 1 for v in p50):
             ax.fill_between(xs, [min(v) for v in p50], [max(v) for v in p50],

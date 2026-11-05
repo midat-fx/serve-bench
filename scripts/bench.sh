@@ -54,6 +54,9 @@ mlx)
   version() { echo "mlx-lm $(uv run --group mlx python -c 'import mlx_lm, mlx.core as m; print(mlx_lm.__version__, "mlx", m.__version__)')"; } ;;
 lmstudio-gguf|lmstudio-mlx)
   URL=http://127.0.0.1:1234 MODEL=bench EOS=--ignore-eos
+  # LM Studio ignores chat_template_kwargs, and its MLX engine ignores reasoning_effort too;
+  # Qwen3's own /no_think switch in the message works on both engines.
+  NO_THINK='{}' SUFFIX=" /no_think"
   key=qwen3-$size; [ $server = lmstudio-mlx ] && key=qwen3-$size-mlx
   # Other jobs may use LM Studio too: only unload our own model instance, and only stop
   # the HTTP server if this script started it.
@@ -130,7 +133,7 @@ prefix)  # 2048-token prompts, 4 users, growing shared prefix
 chat)  # chat template, lognormal lengths around 256 prompt / 128 output tokens
   for c in 1 8; do
     bench chat c$c --endpoint chat --concurrency $c --n $((c < 4 ? 16 : 4 * c)) \
-      --prompt-sigma 0.6 --output-sigma 0.6 --extra-body "$NO_THINK" --tag x=$c
+      --prompt-sigma 0.6 --output-sigma 0.6 --extra-body "$NO_THINK" --user-suffix "${SUFFIX:-}" --tag x=$c
   done ;;
 ceiling)  # run with the fake server: how fast can the client ingest tokens?
   for c in 1 8 32 64; do
